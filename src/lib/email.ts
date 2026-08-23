@@ -1,13 +1,32 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-const globalForResend = globalThis as unknown as {
-  resend: Resend | undefined;
+const globalForMailer = globalThis as unknown as {
+  mailer: nodemailer.Transporter | undefined;
 };
 
-export const resend = globalForResend.resend ?? new Resend(process.env.RESEND_API_KEY);
+function createTransporter(): nodemailer.Transporter {
+  const port = Number(process.env.SMTP_PORT ?? 587);
+
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port,
+    // Port 465 is implicit TLS from the start of the connection; any other
+    // port (587, the Brevo/Laravel default) uses STARTTLS instead, upgraded
+    // after connecting in plaintext. requireTLS makes that upgrade mandatory
+    // rather than opportunistic, matching Laravel's MAIL_ENCRYPTION=tls.
+    secure: port === 465,
+    requireTLS: port !== 465,
+    auth: {
+      user: process.env.SMTP_USERNAME,
+      pass: process.env.SMTP_PASSWORD,
+    },
+  });
+}
+
+export const mailer = globalForMailer.mailer ?? createTransporter();
 
 if (process.env.NODE_ENV !== "production") {
-  globalForResend.resend = resend;
+  globalForMailer.mailer = mailer;
 }
 
 export interface SendGiftCardEmailInput {
@@ -57,16 +76,17 @@ export async function sendGiftCardEmail(input: SendGiftCardEmailInput): Promise<
     .filter(Boolean)
     .join("\n\n");
 
-  const { error } = await resend.emails.send({
-    from: process.env.EMAIL_FROM!,
-    to: input.recipientEmail,
-    subject: `${input.buyerFullName} ti ha inviato una Gift Card`,
-    html,
-    text,
-  });
-
-  if (error) {
-    throw new Error(`Invio email Gift Card fallito: ${error.message}`);
+  try {
+    await mailer.sendMail({
+      from: process.env.EMAIL_FROM,
+      to: input.recipientEmail,
+      subject: `${input.buyerFullName} ti ha inviato una Gift Card`,
+      html,
+      text,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invio email Gift Card fallito: ${message}`);
   }
 }
 
