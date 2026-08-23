@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYPAL
+}
+
+enum PaymentStatus {
+  INITIATED
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum GiftCardStatus {
+  ACTIVE
+  REDEEMED
+  EXPIRED
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  phone     String?
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  customerId  String
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  orderNumber String      @unique
+  totalAmount Decimal     @db.Decimal(10, 2)
+  status      OrderStatus @default(PENDING)
+  payment     Payment?
+  giftCard    GiftCard?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([customerId])
+}
+
+model Payment {
+  id                   String          @id @default(uuid())
+  orderId              String          @unique
+  order                Order           @relation(fields: [orderId], references: [id])
+  provider             PaymentProvider
+  transactionId        String
+  amount               Decimal         @db.Decimal(10, 2)
+  status               PaymentStatus
+  paymentMethodDetails Json?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  @@index([transactionId])
+}
+
+model GiftCard {
+  id             String          @id @default(uuid())
+  orderId        String          @unique
+  order          Order           @relation(fields: [orderId], references: [id])
+  cardCode       String          @unique
+  secretToken    String          @unique
+  recipientName  String
+  recipientEmail String
+  customMessage  String?         @db.Text
+  amount         Decimal         @db.Decimal(10, 2)
+  isOpened       Boolean         @default(false)
+  status         GiftCardStatus  @default(ACTIVE)
+  redeemedAt     DateTime?
+  expiresAt      DateTime
+  redemptionLogs RedemptionLog[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model RedemptionLog {
+  id            String   @id @default(uuid())
+  giftCardId    String
+  giftCard      GiftCard @relation(fields: [giftCardId], references: [id])
+  operatorNotes String?
+  createdAt     DateTime @default(now())
+
+  @@index([giftCardId])
+}
