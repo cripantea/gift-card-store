@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
 }
 
 enum OrderStatus {
@@ -99,8 +99,25 @@ model RedemptionLog {
   id            String   @id @default(uuid())
   giftCardId    String
   giftCard      GiftCard @relation(fields: [giftCardId], references: [id])
-  operatorNotes String?
+  operatorNotes String?  @db.Text
   createdAt     DateTime @default(now())
 
   @@index([giftCardId])
+}
+
+// Stripe Checkout Sessions can carry the buyer/recipient details as metadata
+// and hand them back on `checkout.session.completed`. PayPal Orders have no
+// equivalent free-form metadata field, so we stage the same details here,
+// keyed by the PayPal order id, until the `PAYMENT.CAPTURE.COMPLETED`
+// webhook arrives and consumes (deletes) the row.
+model PendingPaypalCheckout {
+  id               String   @id
+  buyerFirstName   String
+  buyerLastName    String
+  buyerEmail       String
+  recipientName    String
+  recipientEmail   String
+  customMessage    String?  @db.Text
+  amount           Decimal  @db.Decimal(10, 2)
+  createdAt        DateTime @default(now())
 }
