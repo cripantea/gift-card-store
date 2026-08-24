@@ -11,7 +11,12 @@ import {
   TrendingUp,
   XCircle,
 } from "lucide-react";
-import { loadAdminDashboard, type AdminGiftCard, type AdminStats } from "@/app/cassa/actions";
+import {
+  loadAdminDashboard,
+  type AdminDashboardResult,
+  type AdminGiftCard,
+  type AdminStats,
+} from "@/app/cassa/actions";
 import { GiftCardStatus } from "@/generated/prisma/enums";
 
 const currency = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" });
@@ -39,9 +44,10 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const result = await loadAdminDashboard();
+  // Passed as a `.then()` callback, never called directly inside the effect
+  // below — it only runs once the fetch actually resolves, same as
+  // subscribing to an external event.
+  const applyResult = useCallback((result: AdminDashboardResult) => {
     if (!result.authorized) {
       setSessionExpired(true);
     } else {
@@ -51,7 +57,14 @@ export function AdminDashboard() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    loadAdminDashboard().then(applyResult);
+  }, [applyResult]);
+
+  function handleRefresh() {
+    setLoading(true);
+    loadAdminDashboard().then(applyResult);
+  }
 
   const filtered = giftCards.filter((gc) => {
     if (filter === "active") return gc.status === GiftCardStatus.ACTIVE && !gc.scheduledAt;
@@ -198,7 +211,7 @@ export function AdminDashboard() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={load}
+            onClick={handleRefresh}
             className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:border-gold-soft hover:text-ink"
           >
             <RefreshCw className="h-3 w-3" />
