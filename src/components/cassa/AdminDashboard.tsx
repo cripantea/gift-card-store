@@ -12,7 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { loadAdminDashboard, type AdminGiftCard, type AdminStats } from "@/app/cassa/actions";
-import { GiftCardStatus } from "@/generated/prisma/client";
+import { GiftCardStatus } from "@/generated/prisma/enums";
 
 const currency = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" });
 const dateShort = new Intl.DateTimeFormat("it-IT", { dateStyle: "short" });
