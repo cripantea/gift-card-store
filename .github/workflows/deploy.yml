@@ -36,13 +36,11 @@ jobs:
             done
 
             git pull origin main
-            pm2 stop mad-giftcard || true
             find node_modules -maxdepth 1 -name '.*' -type d -exec rm -rf {} + 2>/dev/null || true
             npm install
             npx prisma generate
             npx prisma migrate deploy
-            rm -rf .next
             npm run build
-            pm2 start mad-giftcard || pm2 start npm --name "mad-giftcard" -- run start
+            pm2 restart mad-giftcard || pm2 start npm --name "mad-giftcard" -- run start
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
