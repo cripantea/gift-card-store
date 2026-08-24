@@ -116,7 +116,7 @@ export function CassaPortal() {
           <p className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-gold">
             Cassa
           </p>
-          <h1 className="font-display text-3xl font-semibold text-ink">MÀD Vigevano</h1>
+          <h1 className="font-display text-3xl font-semibold text-ink">MAD Vigevano</h1>
         </div>
 
         <form action={lockCassa}>

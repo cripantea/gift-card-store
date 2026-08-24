@@ -55,7 +55,7 @@ export default async function CheckoutSuccessPage({
       </h1>
 
       <p className="mt-4 max-w-md text-base leading-relaxed text-ink-soft sm:text-lg">
-        La tua Gift Card MÀD Vigevano è stata acquistata con successo.
+        La tua Gift Card MAD Vigevano è stata acquistata con successo.
       </p>
 
       {recipientEmail ? (

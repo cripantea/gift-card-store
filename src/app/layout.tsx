@@ -20,9 +20,9 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "MÀD Vigevano — Gift Card",
+  title: "MAD Vigevano — Gift Card",
   description:
-    "Regala un'esperienza di bellezza e benessere esclusiva con la Gift Card MÀD Vigevano.",
+    "Regala un'esperienza di bellezza e benessere esclusiva con la Gift Card MAD Vigevano.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

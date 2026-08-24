@@ -44,7 +44,7 @@ export function VirtualGiftCard({
         <div className="relative flex flex-col items-center text-center">
           <Image
             src={MAD_LOGO_URL}
-            alt="MÀD Vigevano"
+            alt="MAD Vigevano"
             width={56}
             height={56}
             className="h-9 w-9 drop-shadow-sm sm:h-11 sm:w-11"

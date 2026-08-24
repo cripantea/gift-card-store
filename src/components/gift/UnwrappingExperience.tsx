@@ -123,7 +123,7 @@ export function UnwrappingExperience({ secretToken, children }: UnwrappingExperi
       <div className="flex flex-col items-center gap-1">
         <p className="font-display text-2xl font-semibold text-ink">Hai ricevuto un regalo</p>
         <p className="max-w-xs text-sm text-ink-soft">
-          Qualcuno ha pensato a te con una Gift Card MÀD Vigevano.
+          Qualcuno ha pensato a te con una Gift Card MAD Vigevano.
         </p>
       </div>
 

@@ -40,7 +40,7 @@ export default async function GiftPage({ params }: GiftPageProps) {
           <Sparkles className="h-3 w-3" />
           Gift Card
         </span>
-        <p className="font-display text-2xl font-semibold text-ink">MÀD Vigevano</p>
+        <p className="font-display text-2xl font-semibold text-ink">MAD Vigevano</p>
       </div>
 
       <div className="w-full max-w-md">

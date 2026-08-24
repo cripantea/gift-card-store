@@ -132,7 +132,7 @@ export async function confirmGiftCardRedemption(
     await tx.redemptionLog.create({
       data: {
         giftCardId,
-        operatorNotes: "Riscattata da Cassa MÀD Vigevano",
+        operatorNotes: "Riscattata da Cassa MAD Vigevano",
       },
     });
 

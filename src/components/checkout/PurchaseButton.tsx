@@ -25,7 +25,7 @@ export function PurchaseButton({
       {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
       {isLoading
         ? "Reindirizzamento al pagamento…"
-        : `Acquista Gift Card MÀD (${formattedAmount} €)`}
+        : `Acquista Gift Card MAD (${formattedAmount} €)`}
     </button>
   );
 }

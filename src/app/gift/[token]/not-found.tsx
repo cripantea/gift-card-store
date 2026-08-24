@@ -13,7 +13,7 @@ export default function GiftNotFound() {
       </h1>
 
       <p className="mt-4 max-w-md text-base leading-relaxed text-ink-soft sm:text-lg">
-        Il link che hai seguito non corrisponde a nessuna Gift Card MÀD Vigevano. Controlla di
+        Il link che hai seguito non corrisponde a nessuna Gift Card MAD Vigevano. Controlla di
         aver copiato l&apos;indirizzo per intero.
       </p>
 

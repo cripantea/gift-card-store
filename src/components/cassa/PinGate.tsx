@@ -15,7 +15,7 @@ export function PinGate() {
           Area riservata
         </p>
         <h1 className="mt-2 font-display text-3xl font-semibold text-ink">
-          Cassa MÀD Vigevano
+          Cassa MAD Vigevano
         </h1>
         <p className="mt-2 text-sm text-ink-soft">
           Inserisci il PIN per accedere al portale di riscatto delle Gift Card.

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ShieldCheck } from "lucide-react";
 import {
   AmountSelector,
   CUSTOM_AMOUNT_MIN,
@@ -57,6 +57,9 @@ export function GiftCardCheckout() {
   const [isSubmittingStripe, setIsSubmittingStripe] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
   const amount = isCustomAmount ? Number(customAmount) : selectedDenomination ?? 0;
 
   const validation = useMemo(
@@ -73,6 +76,7 @@ export function GiftCardCheckout() {
   );
 
   const payload: CheckoutRequest | null = validation.success ? validation.data : null;
+  const canPurchase = !!payload && privacyAccepted && termsAccepted;
 
   function handleSelectDenomination(value: GiftCardDenomination) {
     setSelectedDenomination(value);
@@ -86,8 +90,12 @@ export function GiftCardCheckout() {
   }
 
   async function handleStripeCheckout() {
-    if (!payload) {
-      setFormError("Controlla i dati inseriti: alcuni campi obbligatori non sono validi.");
+    if (!canPurchase) {
+      setFormError(
+        !payload
+          ? "Controlla i dati inseriti: alcuni campi obbligatori non sono validi."
+          : "Devi accettare la Privacy Policy e i Termini e Condizioni per procedere.",
+      );
       return;
     }
 
@@ -165,6 +173,78 @@ export function GiftCardCheckout() {
             }}
           />
 
+          {/* Riepilogo ordine */}
+          {amount > 0 && (
+            <div className="rounded-2xl border border-line bg-paper px-5 py-4">
+              <p className="mb-3 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-ink-soft">
+                Riepilogo ordine
+              </p>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-ink-soft">Gift Card MAD Vigevano</span>
+                <span className="font-medium text-ink">
+                  {amount.toFixed(2).replace(".", ",")} €
+                </span>
+              </div>
+              <div className="mt-2 flex items-center justify-between border-t border-line pt-2 text-sm font-semibold text-ink">
+                <span>Totale</span>
+                <span>{amount.toFixed(2).replace(".", ",")} €</span>
+              </div>
+              <p className="mt-2 text-[0.7rem] text-ink-soft/60">
+                IVA inclusa · Valida 12 mesi dall&apos;acquisto · Nessuna spesa di
+                spedizione
+              </p>
+            </div>
+          )}
+
+          {/* Consensi normativi */}
+          <div className="flex flex-col gap-3 rounded-2xl border border-line bg-paper px-5 py-4">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={privacyAccepted}
+                onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-gold cursor-pointer"
+              />
+              <span className="text-xs leading-relaxed text-ink-soft">
+                Ho letto e accetto la{" "}
+                <a
+                  href="https://madvigevano.it/privacy-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2 hover:text-gold transition-colors"
+                >
+                  Privacy Policy
+                </a>{" "}
+                e autorizzo il trattamento dei miei dati personali ai sensi del
+                Reg. UE 2016/679 (GDPR). *
+              </span>
+            </label>
+
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-gold cursor-pointer"
+              />
+              <span className="text-xs leading-relaxed text-ink-soft">
+                Ho letto e accetto i{" "}
+                <a
+                  href="https://madvigevano.it/termini-e-condizioni"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2 hover:text-gold transition-colors"
+                >
+                  Termini e Condizioni
+                </a>{" "}
+                di vendita. Confermo di aver preso atto che, ai sensi
+                dell&apos;art. 59 co. 1 lett. o) D.Lgs. 206/2005, il diritto di
+                recesso non si applica ai contenuti digitali la cui esecuzione
+                inizia immediatamente dopo l&apos;acquisto. *
+              </span>
+            </label>
+          </div>
+
           {formError && (
             <p className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               <AlertCircle className="h-4 w-4 shrink-0" />
@@ -175,23 +255,23 @@ export function GiftCardCheckout() {
           {paymentMethod === "stripe" ? (
             <PurchaseButton
               amount={amount}
-              disabled={!payload}
+              disabled={!canPurchase}
               isLoading={isSubmittingStripe}
               onClick={handleStripeCheckout}
             />
           ) : (
             <PayPalCheckoutButton
               payload={payload}
-              disabled={!payload}
+              disabled={!canPurchase}
               onSuccess={handlePayPalSuccess}
               onError={setFormError}
             />
           )}
 
-          <p className="text-center text-xs text-ink-soft/60">
-            Pagamento sicuro e crittografato · La Gift Card è valida 12 mesi dalla data di
-            acquisto.
-          </p>
+          <div className="flex items-center justify-center gap-1.5 text-xs text-ink-soft/60">
+            <ShieldCheck className="h-3.5 w-3.5 text-gold/60" />
+            Pagamento sicuro e crittografato · Venditore: MAD Vigevano, Via Cairoli 6, Vigevano PV
+          </div>
         </div>
       </div>
     </div>
