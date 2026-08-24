@@ -60,7 +60,14 @@ export function GiftCardCheckout() {
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
+  // "" = invio immediato; "YYYY-MM-DD" = invio programmato
+  const [scheduledDate, setScheduledDate] = useState("");
+
   const amount = isCustomAmount ? Number(customAmount) : selectedDenomination ?? 0;
+
+  const scheduledAt = scheduledDate
+    ? new Date(scheduledDate + "T12:00:00").toISOString()
+    : undefined;
 
   const validation = useMemo(
     () =>
@@ -71,8 +78,9 @@ export function GiftCardCheckout() {
           customMessage: message.trim() ? message : undefined,
         },
         amount,
+        scheduledAt,
       }),
-    [buyer, recipient, message, amount],
+    [buyer, recipient, message, amount, scheduledAt],
   );
 
   const payload: CheckoutRequest | null = validation.success ? validation.data : null;
@@ -160,6 +168,8 @@ export function GiftCardCheckout() {
           onRecipientChange={setRecipient}
           message={message}
           onMessageChange={setMessage}
+          scheduledAt={scheduledDate}
+          onScheduledAtChange={setScheduledDate}
         />
 
         <hr className="border-line" />
@@ -190,9 +200,18 @@ export function GiftCardCheckout() {
                 <span>{amount.toFixed(2).replace(".", ",")} €</span>
               </div>
               <p className="mt-2 text-[0.7rem] text-ink-soft/60">
-                IVA inclusa · Valida 12 mesi dall&apos;acquisto · Nessuna spesa di
-                spedizione
+                IVA inclusa · Valida 12 mesi dall&apos;acquisto · Nessuna spesa di spedizione
               </p>
+              {scheduledDate && (
+                <p className="mt-1 text-[0.7rem] font-medium text-gold/80">
+                  Invio programmato:{" "}
+                  {new Date(scheduledDate + "T12:00:00").toLocaleDateString("it-IT", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+              )}
             </div>
           )}
 

@@ -1,4 +1,4 @@
-import { Gift, Mail, MessageSquareText, User } from "lucide-react";
+import { CalendarClock, Gift, Mail, MessageSquareText, User } from "lucide-react";
 
 export const CUSTOM_MESSAGE_MAX_LENGTH = 300;
 
@@ -59,6 +59,8 @@ interface GiftDetailsFormProps {
   onRecipientChange: (recipient: RecipientFields) => void;
   message: string;
   onMessageChange: (message: string) => void;
+  scheduledAt: string;
+  onScheduledAtChange: (value: string) => void;
 }
 
 export function GiftDetailsForm({
@@ -68,7 +70,19 @@ export function GiftDetailsForm({
   onRecipientChange,
   message,
   onMessageChange,
+  scheduledAt,
+  onScheduledAtChange,
 }: GiftDetailsFormProps) {
+  const isScheduled = scheduledAt !== "";
+
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().slice(0, 10);
+
+  const maxDate = new Date();
+  maxDate.setFullYear(maxDate.getFullYear() + 1);
+  const maxDateStr = maxDate.toISOString().slice(0, 10);
+
   return (
     <div className="flex flex-col gap-8">
       <section>
@@ -161,6 +175,51 @@ export function GiftDetailsForm({
         <p className="mt-1.5 text-right text-xs text-ink-soft/60">
           {message.length}/{CUSTOM_MESSAGE_MAX_LENGTH} caratteri
         </p>
+      </section>
+
+      <section>
+        <div className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
+          <CalendarClock className="h-5 w-5 text-gold" />
+          Invio programmato
+        </div>
+
+        <label className="mt-4 flex cursor-pointer items-center gap-3">
+          <input
+            type="checkbox"
+            checked={isScheduled}
+            onChange={(e) => onScheduledAtChange(e.target.checked ? minDate : "")}
+            className="h-4 w-4 shrink-0 accent-gold cursor-pointer"
+          />
+          <span className="text-sm text-ink-soft">
+            Vuoi programmare l&apos;invio della Gift Card in una data specifica?
+          </span>
+        </label>
+
+        {isScheduled && (
+          <div className="mt-3">
+            <label htmlFor="scheduled-at" className="mb-1.5 block text-sm font-medium text-ink-soft">
+              Data di invio
+            </label>
+            <input
+              id="scheduled-at"
+              type="date"
+              min={minDate}
+              max={maxDateStr}
+              value={scheduledAt}
+              onChange={(e) => onScheduledAtChange(e.target.value)}
+              className="w-full rounded-xl border border-line bg-paper px-4 py-2.5 text-ink outline-none transition-colors focus:border-gold sm:w-64"
+            />
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-soft/70">
+              <Mail className="h-3.5 w-3.5" />
+              Il destinatario riceverà l&apos;email il{" "}
+              {new Date(scheduledAt + "T12:00:00").toLocaleDateString("it-IT", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}.
+            </p>
+          </div>
+        )}
       </section>
     </div>
   );

@@ -90,9 +90,13 @@ model GiftCard {
   status         GiftCardStatus  @default(ACTIVE)
   redeemedAt     DateTime?
   expiresAt      DateTime
+  scheduledAt    DateTime?
+  emailSentAt    DateTime?
   redemptionLogs RedemptionLog[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+
+  @@index([scheduledAt, emailSentAt])
 }
 
 model RedemptionLog {
@@ -119,5 +123,6 @@ model PendingPaypalCheckout {
   recipientEmail   String
   customMessage    String?  @db.Text
   amount           Decimal  @db.Decimal(10, 2)
+  scheduledAt      DateTime?
   createdAt        DateTime @default(now())
 }

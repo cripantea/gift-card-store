@@ -12,6 +12,7 @@ export const checkoutRequestSchema = z.object({
     customMessage: z.string().trim().max(300).optional(),
   }),
   amount: z.number().min(10).max(10_000),
+  scheduledAt: z.string().datetime().optional(),
 });
 
 export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>;
@@ -24,6 +25,7 @@ export const stripeCheckoutMetadataSchema = z.object({
   recipientEmail: z.string().email(),
   customMessage: z.string().optional(),
   amount: z.string().min(1),
+  scheduledAt: z.string().optional(),
 });
 
 export type StripeCheckoutMetadata = z.infer<typeof stripeCheckoutMetadataSchema>;

@@ -1,0 +1,23 @@
+name: Send Scheduled Gift Cards
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # ogni ora
+  workflow_dispatch:        # esecuzione manuale dalla UI GitHub
+
+jobs:
+  send:
+    name: Trigger scheduled delivery
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call send-scheduled endpoint
+        run: |
+          STATUS=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X POST "${{ secrets.NEXT_PUBLIC_BASE_URL }}/api/cron/send-scheduled" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json")
+          cat /tmp/response.json
+          if [ "$STATUS" != "200" ]; then
+            echo "Endpoint returned HTTP $STATUS"
+            exit 1
+          fi

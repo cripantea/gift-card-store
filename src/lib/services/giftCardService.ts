@@ -34,6 +34,7 @@ export interface FulfillOrderAndCreateGiftCardInput {
   transactionId: string;
   recipient: FulfillOrderRecipient;
   amount: number;
+  scheduledAt?: Date | null;
 }
 
 export interface FulfillOrderAndCreateGiftCardResult {
@@ -75,6 +76,8 @@ export async function fulfillOrderAndCreateGiftCard(
     const expiresAt = new Date();
     expiresAt.setMonth(expiresAt.getMonth() + GIFT_CARD_VALIDITY_MONTHS);
 
+    const isScheduled = input.scheduledAt != null && input.scheduledAt > new Date();
+
     const giftCard = await tx.giftCard.create({
       data: {
         orderId: order.id,
@@ -85,6 +88,8 @@ export async function fulfillOrderAndCreateGiftCard(
         customMessage: input.recipient.customMessage ?? null,
         amount: input.amount,
         expiresAt,
+        scheduledAt: input.scheduledAt ?? null,
+        emailSentAt: isScheduled ? null : new Date(),
       },
     });
 
@@ -92,15 +97,19 @@ export async function fulfillOrderAndCreateGiftCard(
   });
 
   const giftLink = `${process.env.NEXT_PUBLIC_BASE_URL}/gift/${result.giftCard.secretToken}`;
+  const isScheduled =
+    result.giftCard.scheduledAt != null && result.giftCard.scheduledAt > new Date();
 
-  await sendGiftCardEmail({
-    recipientEmail: result.giftCard.recipientEmail,
-    recipientName: result.giftCard.recipientName,
-    buyerFullName: `${result.customer.firstName} ${result.customer.lastName}`,
-    customMessage: result.giftCard.customMessage,
-    amount: input.amount,
-    giftLink,
-  });
+  if (!isScheduled) {
+    await sendGiftCardEmail({
+      recipientEmail: result.giftCard.recipientEmail,
+      recipientName: result.giftCard.recipientName,
+      buyerFullName: `${result.customer.firstName} ${result.customer.lastName}`,
+      customMessage: result.giftCard.customMessage,
+      amount: input.amount,
+      giftLink,
+    });
+  }
 
   return result;
 }

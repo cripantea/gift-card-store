@@ -24,7 +24,7 @@ export async function POST(
     return NextResponse.json({ error: "Payload di checkout non valido." }, { status: 400 });
   }
 
-  const { buyer, recipient, amount } = parsed.data;
+  const { buyer, recipient, amount, scheduledAt } = parsed.data;
 
   const metadata: Stripe.MetadataParam = {
     buyerFirstName: buyer.firstName,
@@ -34,6 +34,7 @@ export async function POST(
     recipientEmail: recipient.recipientEmail,
     customMessage: recipient.customMessage ?? "",
     amount: amount.toString(),
+    scheduledAt: scheduledAt ?? "",
   };
 
   try {

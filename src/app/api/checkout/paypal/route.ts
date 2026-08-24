@@ -24,7 +24,7 @@ export async function POST(
     return NextResponse.json({ error: "Payload di checkout non valido." }, { status: 400 });
   }
 
-  const { buyer, recipient, amount } = parsed.data;
+  const { buyer, recipient, amount, scheduledAt } = parsed.data;
 
   try {
     const { result: order } = await paypalOrdersController.createOrder({
@@ -56,6 +56,7 @@ export async function POST(
         recipientEmail: recipient.recipientEmail,
         customMessage: recipient.customMessage ?? null,
         amount,
+        scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
       },
     });
 
