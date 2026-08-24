@@ -20,12 +20,25 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
+          envs: CRON_SECRET
           script: |
             set -e
             cd /home/cristi/mad-giftcard
+
+            # Sync secrets from GitHub into .env (upsert: remove old line, append new)
+            for VAR in CRON_SECRET; do
+              VALUE=$(printenv "$VAR")
+              if [ -n "$VALUE" ]; then
+                sed -i "/^${VAR}=/d" .env 2>/dev/null || true
+                echo "${VAR}=${VALUE}" >> .env
+              fi
+            done
+
             git pull origin main
             npm ci
             npx prisma generate
             npx prisma migrate deploy
             npm run build
             pm2 reload mad-giftcard || pm2 start npm --name "mad-giftcard" -- run start
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
