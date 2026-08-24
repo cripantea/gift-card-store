@@ -41,6 +41,7 @@ jobs:
             npm ci
             npx prisma generate
             npx prisma migrate deploy
+            rm -rf .next
             npm run build
             pm2 start mad-giftcard || pm2 start npm --name "mad-giftcard" -- run start
         env:
