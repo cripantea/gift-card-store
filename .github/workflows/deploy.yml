@@ -37,7 +37,8 @@ jobs:
 
             git pull origin main
             pm2 stop mad-giftcard || true
-            npm install --prefer-offline 2>/dev/null || npm install
+            find node_modules -maxdepth 1 -name '.*' -type d -exec rm -rf {} + 2>/dev/null || true
+            npm install
             npx prisma generate
             npx prisma migrate deploy
             rm -rf .next
