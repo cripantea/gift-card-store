@@ -1,10 +1,10 @@
 import { Check } from "lucide-react";
 
-export const GIFT_CARD_DENOMINATIONS = [25, 50, 100, 200] as const;
+export const GIFT_CARD_DENOMINATIONS = [50, 100, 150, 200] as const;
 
 export type GiftCardDenomination = (typeof GIFT_CARD_DENOMINATIONS)[number];
 
-export const CUSTOM_AMOUNT_MIN = 10;
+export const CUSTOM_AMOUNT_MIN = 50;
 
 interface AmountSelectorProps {
   selected: GiftCardDenomination | null;

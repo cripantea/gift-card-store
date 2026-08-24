@@ -24,6 +24,135 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Come funziona */}
+      <section className="border-b border-line/60 bg-paper-muted/30 py-16 sm:py-20">
+        <div className="mx-auto max-w-5xl px-6">
+          <div className="mb-12 flex flex-col items-center gap-3 text-center">
+            <div className="flex items-center gap-2.5">
+              <span className="block h-px w-8 bg-gold-soft/60" />
+              <span className="text-[0.65rem] font-medium uppercase tracking-[0.28em] text-gold">
+                Come funziona
+              </span>
+              <span className="block h-px w-8 bg-gold-soft/60" />
+            </div>
+            <h2 className="font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              Semplice, elegante, immediato
+            </h2>
+          </div>
+
+          <div className="relative grid grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-6">
+            {/* Linea connettore desktop */}
+            <div
+              aria-hidden
+              className="absolute left-0 right-0 top-[2.75rem] hidden border-t border-dashed border-gold/25 sm:block"
+              style={{ left: "calc(50%/3 + 2.75rem)", right: "calc(50%/3 + 2.75rem)" }}
+            />
+
+            {/* Step 1 */}
+            <div className="flex flex-col items-center gap-4 text-center">
+              <div className="relative flex h-[5.5rem] w-[5.5rem] items-center justify-center rounded-full border border-gold/30 bg-paper shadow-sm shadow-gold/10">
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-[0.6rem] font-bold text-paper">
+                  1
+                </span>
+                {/* Icon: gift */}
+                <svg viewBox="0 0 48 48" className="h-9 w-9 text-gold" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="6" y="20" width="36" height="24" rx="2" />
+                  <rect x="4" y="12" width="40" height="8" rx="2" />
+                  <line x1="24" y1="12" x2="24" y2="44" />
+                  <path d="M24 12c0 0-4-8 0-8s4 8 0 8z" />
+                  <path d="M24 12c0 0 4-8 0-8" />
+                  <path d="M17 12c-3 0-5-2-5-4s5-4 12 4" />
+                  <path d="M31 12c3 0 5-2 5-4s-5-4-12 4" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-display text-xl font-semibold text-ink">Scegli il valore</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
+                  Acquista per te o per qualcuno di speciale. Seleziona l&apos;importo
+                  e personalizza il messaggio.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex flex-col items-center gap-4 text-center">
+              <div className="relative flex h-[5.5rem] w-[5.5rem] items-center justify-center rounded-full border border-gold/30 bg-paper shadow-sm shadow-gold/10">
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-[0.6rem] font-bold text-paper">
+                  2
+                </span>
+                {/* Icon: envelope / calendar */}
+                <svg viewBox="0 0 48 48" className="h-9 w-9 text-gold" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="6" y="10" width="36" height="28" rx="2" />
+                  <polyline points="6,10 24,26 42,10" />
+                  <line x1="30" y1="32" x2="42" y2="32" />
+                  <line x1="36" y1="26" x2="36" y2="38" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-display text-xl font-semibold text-ink">Ricevi subito o dopo</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
+                  Il destinatario riceve l&apos;email immediatamente — oppure scegli
+                  la data perfetta: Natale, un compleanno, un anniversario.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex flex-col items-center gap-4 text-center">
+              <div className="relative flex h-[5.5rem] w-[5.5rem] items-center justify-center rounded-full border border-gold/30 bg-paper shadow-sm shadow-gold/10">
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-[0.6rem] font-bold text-paper">
+                  3
+                </span>
+                {/* Icon: scissors / salon */}
+                <svg viewBox="0 0 48 48" className="h-9 w-9 text-gold" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="14" cy="34" r="6" />
+                  <circle cx="34" cy="34" r="6" />
+                  <line x1="18.5" y1="30.5" x2="29.5" y2="17.5" />
+                  <line x1="29.5" y1="30.5" x2="18.5" y2="17.5" />
+                  <path d="M14 28 L24 10 L34 28" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-display text-xl font-semibold text-ink">Vieni in salone</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
+                  Mostra l&apos;email all&apos;ingresso di MAD Vigevano e goditi
+                  la tua esperienza di bellezza.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Trust badge */}
+          <div className="mt-14 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+            <div className="flex items-center gap-2 text-xs text-ink-soft/70">
+              <svg viewBox="0 0 20 20" className="h-4 w-4 text-gold/70" fill="currentColor">
+                <path fillRule="evenodd" d="M10 1.944l2.43 4.926 5.44.79-3.935 3.836.929 5.417L10 13.545l-4.864 2.368.929-5.417L2.13 6.66l5.44-.79L10 1.944z" clipRule="evenodd" />
+              </svg>
+              Pagamento sicuro
+            </div>
+            <div className="flex items-center gap-2 text-xs text-ink-soft/70">
+              <svg viewBox="0 0 20 20" className="h-4 w-4 text-gold/70" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Valida 12 mesi
+            </div>
+            <div className="flex items-center gap-2 text-xs text-ink-soft/70">
+              <svg viewBox="0 0 20 20" className="h-4 w-4 text-gold/70" fill="currentColor">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+              Consegna via email immediata
+            </div>
+            <div className="flex items-center gap-2 text-xs text-ink-soft/70">
+              <svg viewBox="0 0 20 20" className="h-4 w-4 text-gold/70" fill="currentColor">
+                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+              </svg>
+              Invio programmato
+            </div>
+          </div>
+        </div>
+      </section>
+
       <main className="flex-1 py-12 sm:py-16">
         <GiftCardCheckout />
       </main>

@@ -11,7 +11,7 @@ export const checkoutRequestSchema = z.object({
     recipientEmail: z.string().trim().email().max(255),
     customMessage: z.string().trim().max(300).optional(),
   }),
-  amount: z.number().min(10).max(10_000),
+  amount: z.number().min(50).max(10_000),
   scheduledAt: z.string().datetime().optional(),
 });
 
