@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CheckCircle2, Lock, Search, XCircle } from "lucide-react";
+import { CheckCircle2, LayoutDashboard, Lock, Search, ScanLine, XCircle } from "lucide-react";
 import {
   confirmGiftCardRedemption,
   lockCassa,
@@ -10,6 +10,7 @@ import {
   type RedeemGiftCardResult,
 } from "@/app/cassa/actions";
 import { formatCardCodeGroups, isCompleteCardCode } from "@/lib/utils/cardCode";
+import { AdminDashboard } from "./AdminDashboard";
 
 const amountFormatter = new Intl.NumberFormat("it-IT", {
   style: "currency",
@@ -30,7 +31,10 @@ type ViewState =
   | { step: "active"; giftCardId: string; recipientName: string; amount: number }
   | { step: "success"; recipientName: string; amount: number; redeemedAt: string };
 
+type Tab = "cassa" | "dashboard";
+
 export function CassaPortal() {
+  const [tab, setTab] = useState<Tab>("cassa");
   const [code, setCode] = useState("");
   const [view, setView] = useState<ViewState>({ step: "input" });
   const [isPending, startTransition] = useTransition();
@@ -110,11 +114,12 @@ export function CassaPortal() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-xl flex-col px-4 py-10 sm:py-16">
+    <div className="mx-auto flex min-h-screen max-w-4xl flex-col px-4 py-10 sm:py-16">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <p className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-gold">
-            Cassa
+            Area riservata
           </p>
           <h1 className="font-display text-3xl font-semibold text-ink">MAD Vigevano</h1>
         </div>
@@ -130,7 +135,42 @@ export function CassaPortal() {
         </form>
       </div>
 
-      <div className="mt-10 flex flex-col gap-6 rounded-3xl border border-line bg-paper-muted/60 p-6 shadow-xl shadow-ink/5 sm:p-8">
+      {/* Tabs */}
+      <div className="mt-6 flex gap-1 rounded-2xl border border-line bg-paper-muted/50 p-1">
+        <button
+          onClick={() => setTab("cassa")}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-colors ${
+            tab === "cassa"
+              ? "bg-paper text-ink shadow-sm"
+              : "text-ink-soft hover:text-ink"
+          }`}
+        >
+          <ScanLine className="h-4 w-4" />
+          Riscatta
+        </button>
+        <button
+          onClick={() => setTab("dashboard")}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-colors ${
+            tab === "dashboard"
+              ? "bg-paper text-ink shadow-sm"
+              : "text-ink-soft hover:text-ink"
+          }`}
+        >
+          <LayoutDashboard className="h-4 w-4" />
+          Dashboard
+        </button>
+      </div>
+
+      {/* Dashboard tab */}
+      {tab === "dashboard" && (
+        <div className="mt-8">
+          <AdminDashboard />
+        </div>
+      )}
+
+      {/* Cassa tab */}
+      {tab === "cassa" && (
+      <div className="mt-8 flex flex-col gap-6 rounded-3xl border border-line bg-paper-muted/60 p-6 shadow-xl shadow-ink/5 sm:p-8">
         {view.step === "input" && (
           <>
             <div>
@@ -249,6 +289,7 @@ export function CassaPortal() {
           />
         )}
       </div>
+      )}
     </div>
   );
 }

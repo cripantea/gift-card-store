@@ -10,6 +10,85 @@ import {
 } from "@/lib/cassaAuth";
 import { formatCardCodeGroups, isCompleteCardCode } from "@/lib/utils/cardCode";
 
+// ─── Admin dashboard ──────────────────────────────────────────────────────────
+
+export interface AdminGiftCard {
+  id: string;
+  cardCode: string;
+  recipientName: string;
+  recipientEmail: string;
+  buyerName: string;
+  buyerEmail: string;
+  amount: number;
+  status: GiftCardStatus;
+  createdAt: string;
+  expiresAt: string;
+  redeemedAt: string | null;
+  scheduledAt: string | null;
+  emailSentAt: string | null;
+}
+
+export interface AdminStats {
+  totalRevenue: number;
+  activeCount: number;
+  redeemedCount: number;
+  expiredCount: number;
+  scheduledCount: number;
+  expiringSoonCount: number;
+}
+
+export type AdminDashboardResult =
+  | { authorized: false }
+  | { authorized: true; stats: AdminStats; giftCards: AdminGiftCard[] };
+
+export async function loadAdminDashboard(): Promise<AdminDashboardResult> {
+  if (!(await isCassaSessionValid())) {
+    return { authorized: false };
+  }
+
+  const now = new Date();
+  const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  const giftCards = await prisma.giftCard.findMany({
+    include: { order: { include: { customer: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const stats: AdminStats = {
+    totalRevenue: giftCards.reduce((sum, gc) => sum + gc.amount.toNumber(), 0),
+    activeCount: giftCards.filter((gc) => gc.status === GiftCardStatus.ACTIVE && !gc.scheduledAt).length,
+    redeemedCount: giftCards.filter((gc) => gc.status === GiftCardStatus.REDEEMED).length,
+    expiredCount: giftCards.filter((gc) => gc.status === GiftCardStatus.EXPIRED).length,
+    scheduledCount: giftCards.filter((gc) => gc.scheduledAt && !gc.emailSentAt).length,
+    expiringSoonCount: giftCards.filter(
+      (gc) =>
+        gc.status === GiftCardStatus.ACTIVE &&
+        gc.expiresAt > now &&
+        gc.expiresAt <= in30Days,
+    ).length,
+  };
+
+  return {
+    authorized: true,
+    stats,
+    giftCards: giftCards.map((gc) => ({
+      id: gc.id,
+      cardCode: gc.cardCode,
+      recipientName: gc.recipientName,
+      recipientEmail: gc.recipientEmail,
+      buyerName: `${gc.order.customer.firstName} ${gc.order.customer.lastName}`,
+      buyerEmail: gc.order.customer.email,
+      amount: gc.amount.toNumber(),
+      status: gc.status,
+      createdAt: gc.createdAt.toISOString(),
+      expiresAt: gc.expiresAt.toISOString(),
+      redeemedAt: gc.redeemedAt?.toISOString() ?? null,
+      scheduledAt: gc.scheduledAt?.toISOString() ?? null,
+      emailSentAt: gc.emailSentAt?.toISOString() ?? null,
+    })),
+  };
+}
+
 export interface PinFormState {
   error?: string;
 }
