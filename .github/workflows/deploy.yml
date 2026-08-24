@@ -37,10 +37,7 @@ jobs:
 
             git pull origin main
             pm2 stop mad-giftcard || true
-            sleep 2
-            mv node_modules "node_modules_old_$$" 2>/dev/null || true
-            npm ci
-            rm -rf "node_modules_old_$$" &
+            npm install --prefer-offline 2>/dev/null || npm install
             npx prisma generate
             npx prisma migrate deploy
             rm -rf .next
