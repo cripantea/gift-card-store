@@ -6,6 +6,14 @@ on:
       - main
   workflow_dispatch:
 
+# Never let two deploys touch the server at once: a second push (or manual
+# re-run) while one is mid `npm install`/build was corrupting node_modules
+# and causing ENOTEMPTY / half-written packages. Queue instead of cancelling,
+# so an in-flight deploy always finishes cleanly before the next one starts.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Deploy via SSH
@@ -36,8 +44,7 @@ jobs:
             done
 
             git pull origin main
-            find node_modules -maxdepth 1 -name '.*' -type d -exec rm -rf {} + 2>/dev/null || true
-            npm install
+            npm ci
             npx prisma generate
             npx prisma migrate deploy
             npm run build
