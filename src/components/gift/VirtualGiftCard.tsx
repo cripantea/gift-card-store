@@ -35,7 +35,7 @@ export function VirtualGiftCard({
           physical MÀD card — logo, amount, recipient/buyer, embossed code,
           expiry. Nothing here is allowed to grow the box, since aspect-ratio
           on a plain block clips overflow instead of expanding for content. */}
-      <div className="relative aspect-[1.586/1] w-full overflow-hidden rounded-2xl border border-neutral-200/60 bg-neutral-50 p-4 shadow-2xl sm:p-6">
+      <div className="relative w-full overflow-hidden rounded-2xl border border-neutral-200/60 bg-neutral-50 p-4 shadow-2xl sm:aspect-[1.586/1] sm:p-6">
         {/* Satin sheen */}
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,transparent_28%,rgba(255,255,255,0.75)_46%,transparent_64%)]" />
         {/* Soft gold corner glow */}
