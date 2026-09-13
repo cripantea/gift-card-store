@@ -43,8 +43,9 @@ jobs:
               fi
             done
 
+            git checkout -- package-lock.json
             git pull origin main
-            npm ci
+            npm install
             npx prisma generate
             npx prisma migrate deploy
             npm run build
