@@ -35,7 +35,7 @@ export default async function GiftPage({ params }: GiftPageProps) {
   );
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-paper px-6 py-10">
+    <div className="flex min-h-screen flex-col items-center bg-paper px-6 py-12 sm:py-16">
       <div className="mb-6 flex flex-col items-center gap-2 text-center">
         <span className="inline-flex items-center gap-2 rounded-full border border-gold-soft/50 bg-gold/5 px-4 py-1 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-gold">
           <Sparkles className="h-3 w-3" />

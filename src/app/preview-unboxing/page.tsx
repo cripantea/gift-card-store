@@ -17,7 +17,7 @@ export default function PreviewUnboxingPage() {
   );
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-paper px-6 py-10">
+    <div className="flex min-h-screen flex-col items-center bg-paper px-6 py-12 sm:py-16">
       <div className="w-full max-w-md">
         <UnwrappingExperience secretToken="preview-no-op">{card}</UnwrappingExperience>
       </div>

@@ -88,6 +88,24 @@ export function UnwrappingExperience({
   return (
     <div className="flex flex-col items-center gap-8 py-6 select-none">
 
+      {/* ─── Heading — sopra il box, sparisce al reveal ─────────── */}
+      <AnimatePresence>
+        {stage === "idle" && (
+          <motion.div
+            className="flex flex-col items-center gap-3 text-center"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.55, delay: 0.25 }}
+          >
+            <p className="font-display text-4xl font-semibold text-ink sm:text-5xl">Hai ricevuto un regalo</p>
+            <p className="max-w-sm text-base leading-relaxed text-ink-soft sm:text-lg">
+              Qualcuno ha pensato a te con una Gift Card MAD Vigevano.
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence mode="wait">
 
         {/* ─── BOX ─────────────────────────────────────────────────── */}
@@ -337,29 +355,19 @@ export function UnwrappingExperience({
 
       </AnimatePresence>
 
-      {/* ─── Hint ─────────────────────────────────────────────────── */}
+      {/* ─── Hint drag — sotto il box ─────────────────────────────── */}
       <AnimatePresence>
         {stage === "idle" && (
-          <motion.div
-            className="flex flex-col items-center gap-3 text-center"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.55, delay: 0.25 }}
+          <motion.p
+            className="text-sm font-medium tracking-[0.18em] uppercase sm:text-base"
+            style={{ color: "#c3a06a" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
           >
-            <p className="font-display text-4xl font-semibold text-ink sm:text-5xl">Hai ricevuto un regalo</p>
-            <p className="max-w-sm text-base leading-relaxed text-ink-soft sm:text-lg">
-              Qualcuno ha pensato a te con una Gift Card MAD Vigevano.
-            </p>
-            <motion.p
-              className="mt-1 text-sm font-medium tracking-[0.18em] uppercase sm:text-base"
-              style={{ color: "#c3a06a" }}
-              animate={{ opacity: [0.4, 1, 0.4] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            >
-              Trascina il fiocco per aprire
-            </motion.p>
-          </motion.div>
+            Trascina il fiocco per aprire
+          </motion.p>
         )}
       </AnimatePresence>
     </div>
