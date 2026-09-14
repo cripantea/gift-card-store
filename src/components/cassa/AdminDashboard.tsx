@@ -96,7 +96,7 @@ export function AdminDashboard() {
       gc.cardCode,
       gc.amount.toFixed(2),
       STATUS_LABEL[gc.status],
-      gc.recipientName,
+      `${gc.recipientFirstName} ${gc.recipientLastName}`.trim(),
       gc.recipientPhone,
       gc.buyerName,
       gc.buyerEmail,
@@ -268,7 +268,7 @@ export function AdminDashboard() {
                     {gc.cardCode}
                   </td>
                   <td className="px-4 py-3">
-                    <p className="font-medium text-ink">{gc.recipientName}</p>
+                    <p className="font-medium text-ink">{gc.recipientFirstName} {gc.recipientLastName}</p>
                     <p className="text-xs text-ink-soft/70">{gc.recipientPhone}</p>
                   </td>
                   <td className="px-4 py-3">

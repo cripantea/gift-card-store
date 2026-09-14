@@ -26,7 +26,7 @@ export default async function GiftPage({ params }: GiftPageProps) {
   const card = (
     <VirtualGiftCard
       amount={giftCard.amount.toNumber()}
-      recipientName={giftCard.recipientName}
+      recipientName={`${giftCard.recipientFirstName} ${giftCard.recipientLastName}`.trim()}
       buyerFullName={`${giftCard.order.customer.firstName} ${giftCard.order.customer.lastName}`}
       customMessage={giftCard.customMessage}
       cardCode={giftCard.cardCode}

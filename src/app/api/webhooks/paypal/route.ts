@@ -80,7 +80,8 @@ export async function POST(request: Request): Promise<NextResponse<WebhookAck | 
         paymentProvider: PaymentProvider.PAYPAL,
         transactionId: event.resource.id,
         recipient: {
-          recipientName: pendingCheckout.recipientName,
+          recipientFirstName: pendingCheckout.recipientFirstName,
+          recipientLastName: pendingCheckout.recipientLastName,
           recipientPhone: pendingCheckout.recipientPhone,
           customMessage: pendingCheckout.customMessage,
         },

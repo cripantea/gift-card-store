@@ -59,7 +59,8 @@ interface BuyerFields {
 }
 
 interface RecipientFields {
-  recipientName: string;
+  recipientFirstName: string;
+  recipientLastName: string;
   recipientPhone: string;
 }
 
@@ -149,26 +150,38 @@ export function GiftDetailsForm({
         </h2>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <TextField
-            id="recipient-name"
-            label="Nome e cognome"
-            value={recipient.recipientName}
-            autoComplete="name"
-            placeholder="Nome del destinatario"
+            id="recipient-first-name"
+            label="Nome"
+            value={recipient.recipientFirstName}
+            autoComplete="given-name"
+            placeholder="Nome"
             onChange={(value) =>
-              onRecipientChange({ ...recipient, recipientName: value })
+              onRecipientChange({ ...recipient, recipientFirstName: value })
             }
           />
           <TextField
-            id="recipient-phone"
-            label="Numero di telefono"
-            type="tel"
-            value={recipient.recipientPhone}
-            autoComplete="tel"
-            placeholder="+39 333 123 4567"
+            id="recipient-last-name"
+            label="Cognome"
+            value={recipient.recipientLastName}
+            autoComplete="family-name"
+            placeholder="Cognome"
             onChange={(value) =>
-              onRecipientChange({ ...recipient, recipientPhone: value })
+              onRecipientChange({ ...recipient, recipientLastName: value })
             }
           />
+          <div className="sm:col-span-2">
+            <TextField
+              id="recipient-phone"
+              label="Numero di telefono"
+              type="tel"
+              value={recipient.recipientPhone}
+              autoComplete="tel"
+              placeholder="+39 333 123 4567"
+              onChange={(value) =>
+                onRecipientChange({ ...recipient, recipientPhone: value })
+              }
+            />
+          </div>
         </div>
         <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-soft/70">
           <Phone className="h-3.5 w-3.5" />

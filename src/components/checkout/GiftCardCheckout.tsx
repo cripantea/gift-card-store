@@ -29,7 +29,8 @@ interface BuyerFields {
 }
 
 interface RecipientFields {
-  recipientName: string;
+  recipientFirstName: string;
+  recipientLastName: string;
   recipientPhone: string;
 }
 
@@ -55,7 +56,8 @@ export function GiftCardCheckout() {
     email: "",
   });
   const [recipient, setRecipient] = useState<RecipientFields>({
-    recipientName: "",
+    recipientFirstName: "",
+    recipientLastName: "",
     recipientPhone: "",
   });
   const [message, setMessage] = useState("");

@@ -15,7 +15,8 @@ import { formatCardCodeGroups, isCompleteCardCode } from "@/lib/utils/cardCode";
 export interface AdminGiftCard {
   id: string;
   cardCode: string;
-  recipientName: string;
+  recipientFirstName: string;
+  recipientLastName: string;
   recipientPhone: string;
   buyerName: string;
   buyerEmail: string;
@@ -74,7 +75,8 @@ export async function loadAdminDashboard(): Promise<AdminDashboardResult> {
     giftCards: giftCards.map((gc) => ({
       id: gc.id,
       cardCode: gc.cardCode,
-      recipientName: gc.recipientName,
+      recipientFirstName: gc.recipientFirstName,
+      recipientLastName: gc.recipientLastName,
       recipientPhone: gc.recipientPhone,
       buyerName: `${gc.order.customer.firstName} ${gc.order.customer.lastName}`,
       buyerEmail: gc.order.customer.email,
@@ -119,7 +121,7 @@ export type GiftCardLookupResult =
   | {
       status: "active";
       giftCardId: string;
-      recipientName: string;
+      recipientName: string; // combined for display
       amount: number;
       cardCode: string;
     };
@@ -160,7 +162,7 @@ export async function lookupGiftCardCode(rawCode: string): Promise<GiftCardLooku
   return {
     status: "active",
     giftCardId: giftCard.id,
-    recipientName: giftCard.recipientName,
+    recipientName: `${giftCard.recipientFirstName} ${giftCard.recipientLastName}`.trim(),
     amount: giftCard.amount.toNumber(),
     cardCode: giftCard.cardCode,
   };

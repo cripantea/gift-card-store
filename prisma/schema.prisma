@@ -82,7 +82,8 @@ model GiftCard {
   order          Order           @relation(fields: [orderId], references: [id])
   cardCode       String          @unique
   secretToken    String          @unique
-  recipientName  String
+  recipientFirstName String
+  recipientLastName  String
   recipientPhone String
   customMessage  String?         @db.Text
   amount         Decimal         @db.Decimal(10, 2)
@@ -119,7 +120,8 @@ model PendingPaypalCheckout {
   buyerFirstName   String
   buyerLastName    String
   buyerEmail       String
-  recipientName    String
+  recipientFirstName String
+  recipientLastName  String
   recipientPhone   String
   customMessage    String?  @db.Text
   amount           Decimal  @db.Decimal(10, 2)

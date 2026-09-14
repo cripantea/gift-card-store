@@ -55,7 +55,8 @@ export async function POST(request: Request): Promise<NextResponse<WebhookAck | 
         paymentProvider: PaymentProvider.STRIPE,
         transactionId,
         recipient: {
-          recipientName: metadata.recipientName,
+          recipientFirstName: metadata.recipientFirstName,
+          recipientLastName: metadata.recipientLastName,
           recipientPhone: metadata.recipientPhone,
           customMessage: metadata.customMessage || null,
         },

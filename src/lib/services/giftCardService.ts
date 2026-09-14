@@ -21,7 +21,8 @@ export interface FulfillOrderBuyer {
 }
 
 export interface FulfillOrderRecipient {
-  recipientName: string;
+  recipientFirstName: string;
+  recipientLastName: string;
   recipientPhone: string;
   customMessage?: string | null;
 }
@@ -81,7 +82,8 @@ export async function fulfillOrderAndCreateGiftCard(
         orderId: order.id,
         cardCode: generateFormattedCardCode(),
         secretToken: generateSecretToken(),
-        recipientName: input.recipient.recipientName,
+        recipientFirstName: input.recipient.recipientFirstName,
+        recipientLastName: input.recipient.recipientLastName,
         recipientPhone: input.recipient.recipientPhone,
         customMessage: input.recipient.customMessage ?? null,
         amount: input.amount,

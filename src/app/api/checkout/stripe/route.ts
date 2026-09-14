@@ -30,7 +30,8 @@ export async function POST(
     buyerFirstName: buyer.firstName,
     buyerLastName: buyer.lastName,
     buyerEmail: buyer.email,
-    recipientName: recipient.recipientName,
+    recipientFirstName: recipient.recipientFirstName,
+    recipientLastName: recipient.recipientLastName,
     recipientPhone: recipient.recipientPhone,
     customMessage: recipient.customMessage ?? "",
     amount: amount.toString(),
@@ -48,7 +49,7 @@ export async function POST(
             currency: "eur",
             unit_amount: Math.round(amount * 100),
             product_data: {
-              name: `Gift Card per ${recipient.recipientName}`,
+              name: `Gift Card per ${recipient.recipientFirstName} ${recipient.recipientLastName}`,
             },
           },
         },
