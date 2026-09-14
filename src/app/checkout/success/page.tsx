@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, MailCheck } from "lucide-react";
+import { CheckCircle2, MessageCircle } from "lucide-react";
 import { stripe } from "@/lib/stripe";
 import { stripeCheckoutMetadataSchema } from "@/lib/validation/checkout";
 
@@ -7,18 +7,18 @@ export const runtime = "nodejs";
 
 interface CheckoutSuccessSearchParams {
   session_id?: string;
-  recipientEmail?: string;
+  recipientPhone?: string;
 }
 
 interface CheckoutSuccessPageProps {
   searchParams: Promise<CheckoutSuccessSearchParams>;
 }
 
-async function resolveRecipientEmail(
+async function resolveRecipientPhone(
   params: CheckoutSuccessSearchParams,
 ): Promise<string | null> {
-  if (params.recipientEmail) {
-    return params.recipientEmail;
+  if (params.recipientPhone) {
+    return params.recipientPhone;
   }
 
   if (!params.session_id) {
@@ -28,7 +28,7 @@ async function resolveRecipientEmail(
   try {
     const session = await stripe.checkout.sessions.retrieve(params.session_id);
     const metadata = stripeCheckoutMetadataSchema.safeParse(session.metadata ?? {});
-    return metadata.success ? metadata.data.recipientEmail : null;
+    return metadata.success ? metadata.data.recipientPhone : null;
   } catch (error) {
     console.error(
       "Impossibile recuperare la sessione Stripe per la pagina di conferma",
@@ -42,7 +42,7 @@ export default async function CheckoutSuccessPage({
   searchParams,
 }: CheckoutSuccessPageProps) {
   const params = await searchParams;
-  const recipientEmail = await resolveRecipientEmail(params);
+  const recipientPhone = await resolveRecipientPhone(params);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-paper px-6 py-24 text-center">
@@ -58,17 +58,17 @@ export default async function CheckoutSuccessPage({
         La tua Gift Card MAD Vigevano è stata acquistata con successo.
       </p>
 
-      {recipientEmail ? (
+      {recipientPhone ? (
         <p className="mt-6 flex max-w-md flex-wrap items-center justify-center gap-2 rounded-full border border-line bg-paper-muted px-5 py-3 text-sm text-ink-soft">
-          <MailCheck className="h-4 w-4 shrink-0 text-gold" />
-          Abbiamo inviato un&apos;email a{" "}
-          <strong className="font-medium text-ink">{recipientEmail}</strong> con il
-          link per scoprire il regalo!
+          <MessageCircle className="h-4 w-4 shrink-0 text-gold" />
+          Il destinatario riceverà un WhatsApp al numero{" "}
+          <strong className="font-medium text-ink">{recipientPhone}</strong> direttamente
+          da MAD for Hair.
         </p>
       ) : (
         <p className="mt-6 max-w-md rounded-full border border-line bg-paper-muted px-5 py-3 text-sm text-ink-soft">
-          Il destinatario riceverà a breve un&apos;email con il link per scoprire il
-          regalo!
+          Il destinatario riceverà a breve un WhatsApp da MAD for Hair con il link per
+          scoprire il regalo!
         </p>
       )}
 

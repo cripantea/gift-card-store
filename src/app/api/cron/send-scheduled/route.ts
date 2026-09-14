@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendGiftCardEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 
 interface CronResult {
-  sent: number;
+  processed: number;
   errors: number;
 }
 
@@ -31,39 +30,23 @@ export async function POST(
       scheduledAt: { lte: now },
       status: "ACTIVE",
     },
-    include: {
-      order: { include: { customer: true } },
-    },
   });
 
-  let sent = 0;
+  let processed = 0;
   let errors = 0;
 
   for (const giftCard of pending) {
-    const giftLink = `${process.env.NEXT_PUBLIC_BASE_URL}/gift/${giftCard.secretToken}`;
-    const { customer } = giftCard.order;
-
     try {
-      await sendGiftCardEmail({
-        recipientEmail: giftCard.recipientEmail,
-        recipientName: giftCard.recipientName,
-        buyerFullName: `${customer.firstName} ${customer.lastName}`,
-        customMessage: giftCard.customMessage,
-        amount: giftCard.amount.toNumber(),
-        giftLink,
-      });
-
       await prisma.giftCard.update({
         where: { id: giftCard.id },
         data: { emailSentAt: now },
       });
-
-      sent++;
+      processed++;
     } catch (error) {
-      console.error(`Invio email programmato fallito per gift card ${giftCard.id}`, error);
+      console.error(`Aggiornamento scheduledAt fallito per gift card ${giftCard.id}`, error);
       errors++;
     }
   }
 
-  return NextResponse.json({ sent, errors });
+  return NextResponse.json({ processed, errors });
 }

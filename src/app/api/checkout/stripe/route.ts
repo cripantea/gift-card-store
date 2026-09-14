@@ -31,7 +31,7 @@ export async function POST(
     buyerLastName: buyer.lastName,
     buyerEmail: buyer.email,
     recipientName: recipient.recipientName,
-    recipientEmail: recipient.recipientEmail,
+    recipientPhone: recipient.recipientPhone,
     customMessage: recipient.customMessage ?? "",
     amount: amount.toString(),
     scheduledAt: scheduledAt ?? "",

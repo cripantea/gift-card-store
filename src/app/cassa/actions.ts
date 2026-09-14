@@ -16,7 +16,7 @@ export interface AdminGiftCard {
   id: string;
   cardCode: string;
   recipientName: string;
-  recipientEmail: string;
+  recipientPhone: string;
   buyerName: string;
   buyerEmail: string;
   amount: number;
@@ -75,7 +75,7 @@ export async function loadAdminDashboard(): Promise<AdminDashboardResult> {
       id: gc.id,
       cardCode: gc.cardCode,
       recipientName: gc.recipientName,
-      recipientEmail: gc.recipientEmail,
+      recipientPhone: gc.recipientPhone,
       buyerName: `${gc.order.customer.firstName} ${gc.order.customer.lastName}`,
       buyerEmail: gc.order.customer.email,
       amount: gc.amount.toNumber(),

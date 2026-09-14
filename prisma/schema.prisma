@@ -83,7 +83,7 @@ model GiftCard {
   cardCode       String          @unique
   secretToken    String          @unique
   recipientName  String
-  recipientEmail String
+  recipientPhone String
   customMessage  String?         @db.Text
   amount         Decimal         @db.Decimal(10, 2)
   isOpened       Boolean         @default(false)
@@ -120,7 +120,7 @@ model PendingPaypalCheckout {
   buyerLastName    String
   buyerEmail       String
   recipientName    String
-  recipientEmail   String
+  recipientPhone   String
   customMessage    String?  @db.Text
   amount           Decimal  @db.Decimal(10, 2)
   scheduledAt      DateTime?

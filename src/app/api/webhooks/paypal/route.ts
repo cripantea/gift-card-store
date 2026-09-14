@@ -81,7 +81,7 @@ export async function POST(request: Request): Promise<NextResponse<WebhookAck | 
         transactionId: event.resource.id,
         recipient: {
           recipientName: pendingCheckout.recipientName,
-          recipientEmail: pendingCheckout.recipientEmail,
+          recipientPhone: pendingCheckout.recipientPhone,
           customMessage: pendingCheckout.customMessage,
         },
         amount: Number(pendingCheckout.amount),

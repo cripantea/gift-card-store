@@ -97,7 +97,7 @@ export function AdminDashboard() {
       gc.amount.toFixed(2),
       STATUS_LABEL[gc.status],
       gc.recipientName,
-      gc.recipientEmail,
+      gc.recipientPhone,
       gc.buyerName,
       gc.buyerEmail,
       dateLong.format(new Date(gc.createdAt)),
@@ -269,7 +269,7 @@ export function AdminDashboard() {
                   </td>
                   <td className="px-4 py-3">
                     <p className="font-medium text-ink">{gc.recipientName}</p>
-                    <p className="text-xs text-ink-soft/70">{gc.recipientEmail}</p>
+                    <p className="text-xs text-ink-soft/70">{gc.recipientPhone}</p>
                   </td>
                   <td className="px-4 py-3">
                     <p className="text-ink">{gc.buyerName}</p>

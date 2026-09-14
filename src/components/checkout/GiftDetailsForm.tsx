@@ -1,11 +1,22 @@
-import { CalendarClock, Gift, Mail, MessageSquareText, User } from "lucide-react";
+"use client";
+
+import { motion } from "framer-motion";
+import { CalendarClock, Gift, MessageSquareText, Phone, User } from "lucide-react";
 
 export const CUSTOM_MESSAGE_MAX_LENGTH = 300;
+
+function section(delay: number) {
+  return {
+    initial: { opacity: 0, y: 18 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.45, ease: "easeOut" as const, delay },
+  };
+}
 
 interface TextFieldProps {
   id: string;
   label: string;
-  type?: "text" | "email";
+  type?: "text" | "tel";
   value: string;
   onChange: (value: string) => void;
   autoComplete?: string;
@@ -49,7 +60,7 @@ interface BuyerFields {
 
 interface RecipientFields {
   recipientName: string;
-  recipientEmail: string;
+  recipientPhone: string;
 }
 
 interface GiftDetailsFormProps {
@@ -75,17 +86,29 @@ export function GiftDetailsForm({
 }: GiftDetailsFormProps) {
   const isScheduled = scheduledAt !== "";
 
-  const tomorrow = new Date();
+  const now = new Date();
+  const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().slice(0, 10);
+  tomorrow.setHours(10, 0, 0, 0);
+  const minDatetime = tomorrow.toISOString().slice(0, 16);
 
   const maxDate = new Date();
   maxDate.setFullYear(maxDate.getFullYear() + 1);
-  const maxDateStr = maxDate.toISOString().slice(0, 10);
+  const maxDatetime = maxDate.toISOString().slice(0, 16);
+
+  const scheduledDisplay = scheduledAt
+    ? new Date(scheduledAt).toLocaleString("it-IT", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
 
   return (
     <div className="flex flex-col gap-8">
-      <section>
+      <motion.section {...section(0)}>
         <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
           <User className="h-5 w-5 text-gold" />I tuoi dati
         </h2>
@@ -110,7 +133,6 @@ export function GiftDetailsForm({
             <TextField
               id="buyer-email"
               label="Email"
-              type="email"
               value={buyer.email}
               autoComplete="email"
               placeholder="nome@esempio.it"
@@ -118,9 +140,9 @@ export function GiftDetailsForm({
             />
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section>
+      <motion.section {...section(0.08)}>
         <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
           <Gift className="h-5 w-5 text-gold" />
           Il destinatario
@@ -137,25 +159,24 @@ export function GiftDetailsForm({
             }
           />
           <TextField
-            id="recipient-email"
-            label="Email"
-            type="email"
-            value={recipient.recipientEmail}
-            autoComplete="email"
-            placeholder="destinatario@esempio.it"
+            id="recipient-phone"
+            label="Numero di telefono"
+            type="tel"
+            value={recipient.recipientPhone}
+            autoComplete="tel"
+            placeholder="+39 333 123 4567"
             onChange={(value) =>
-              onRecipientChange({ ...recipient, recipientEmail: value })
+              onRecipientChange({ ...recipient, recipientPhone: value })
             }
           />
         </div>
         <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-soft/70">
-          <Mail className="h-3.5 w-3.5" />
-          Il destinatario riceverà un&apos;email con il link per scoprire il
-          regalo.
+          <Phone className="h-3.5 w-3.5" />
+          Il destinatario riceverà un WhatsApp direttamente dal numero di MAD for Hair.
         </p>
-      </section>
+      </motion.section>
 
-      <section>
+      <motion.section {...section(0.16)}>
         <label
           htmlFor="custom-message"
           className="flex items-center gap-2 font-display text-2xl font-semibold text-ink"
@@ -175,9 +196,9 @@ export function GiftDetailsForm({
         <p className="mt-1.5 text-right text-xs text-ink-soft/60">
           {message.length}/{CUSTOM_MESSAGE_MAX_LENGTH} caratteri
         </p>
-      </section>
+      </motion.section>
 
-      <section>
+      <motion.section {...section(0.24)}>
         <div className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
           <CalendarClock className="h-5 w-5 text-gold" />
           Invio programmato
@@ -187,40 +208,38 @@ export function GiftDetailsForm({
           <input
             type="checkbox"
             checked={isScheduled}
-            onChange={(e) => onScheduledAtChange(e.target.checked ? minDate : "")}
+            onChange={(e) => onScheduledAtChange(e.target.checked ? minDatetime : "")}
             className="h-4 w-4 shrink-0 accent-gold cursor-pointer"
           />
           <span className="text-sm text-ink-soft">
-            Vuoi programmare l&apos;invio della Gift Card in una data specifica?
+            Scegli data e ora di consegna del WhatsApp
           </span>
         </label>
 
         {isScheduled && (
           <div className="mt-3">
             <label htmlFor="scheduled-at" className="mb-1.5 block text-sm font-medium text-ink-soft">
-              Data di invio
+              Data e ora di invio
             </label>
             <input
               id="scheduled-at"
-              type="date"
-              min={minDate}
-              max={maxDateStr}
+              type="datetime-local"
+              min={minDatetime}
+              max={maxDatetime}
               value={scheduledAt}
               onChange={(e) => onScheduledAtChange(e.target.value)}
-              className="w-full rounded-xl border border-line bg-paper px-4 py-2.5 text-ink outline-none transition-colors focus:border-gold sm:w-64"
+              className="w-full rounded-xl border border-line bg-paper px-4 py-2.5 text-ink outline-none transition-colors focus:border-gold sm:w-72"
             />
-            <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-soft/70">
-              <Mail className="h-3.5 w-3.5" />
-              Il destinatario riceverà l&apos;email il{" "}
-              {new Date(scheduledAt + "T12:00:00").toLocaleDateString("it-IT", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}.
-            </p>
+            {scheduledDisplay && (
+              <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-soft/70">
+                <Phone className="h-3.5 w-3.5 text-gold" />
+                Il destinatario riceverà il WhatsApp il{" "}
+                <span className="font-medium text-gold">{scheduledDisplay}</span>.
+              </p>
+            )}
           </div>
         )}
-      </section>
+      </motion.section>
     </div>
   );
 }

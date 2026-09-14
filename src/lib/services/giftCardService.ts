@@ -11,8 +11,6 @@ import {
 import { prisma } from "@/lib/prisma";
 import { generateFormattedCardCode, generateSecretToken } from "@/lib/utils/giftCard";
 import { generateOrderNumber } from "@/lib/utils/order";
-import { sendGiftCardEmail } from "@/lib/email";
-
 const GIFT_CARD_VALIDITY_MONTHS = 12;
 const ORDER_NUMBER_MAX_ATTEMPTS = 5;
 
@@ -24,7 +22,7 @@ export interface FulfillOrderBuyer {
 
 export interface FulfillOrderRecipient {
   recipientName: string;
-  recipientEmail: string;
+  recipientPhone: string;
   customMessage?: string | null;
 }
 
@@ -84,32 +82,17 @@ export async function fulfillOrderAndCreateGiftCard(
         cardCode: generateFormattedCardCode(),
         secretToken: generateSecretToken(),
         recipientName: input.recipient.recipientName,
-        recipientEmail: input.recipient.recipientEmail,
+        recipientPhone: input.recipient.recipientPhone,
         customMessage: input.recipient.customMessage ?? null,
         amount: input.amount,
         expiresAt,
         scheduledAt: input.scheduledAt ?? null,
-        emailSentAt: isScheduled ? null : new Date(),
+        emailSentAt: isScheduled ? null : new Date(), // marks whatsapp delivery as "queued"
       },
     });
 
     return { customer, order, payment, giftCard };
   });
-
-  const giftLink = `${process.env.NEXT_PUBLIC_BASE_URL}/gift/${result.giftCard.secretToken}`;
-  const isScheduled =
-    result.giftCard.scheduledAt != null && result.giftCard.scheduledAt > new Date();
-
-  if (!isScheduled) {
-    await sendGiftCardEmail({
-      recipientEmail: result.giftCard.recipientEmail,
-      recipientName: result.giftCard.recipientName,
-      buyerFullName: `${result.customer.firstName} ${result.customer.lastName}`,
-      customMessage: result.giftCard.customMessage,
-      amount: input.amount,
-      giftLink,
-    });
-  }
 
   return result;
 }

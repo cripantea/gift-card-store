@@ -56,7 +56,7 @@ export async function POST(request: Request): Promise<NextResponse<WebhookAck | 
         transactionId,
         recipient: {
           recipientName: metadata.recipientName,
-          recipientEmail: metadata.recipientEmail,
+          recipientPhone: metadata.recipientPhone,
           customMessage: metadata.customMessage || null,
         },
         amount: Number(metadata.amount),

@@ -19,7 +19,7 @@ export default function Home() {
           </h1>
           <p className="max-w-md text-sm leading-relaxed text-ink-soft sm:text-base">
             Scegli il valore della tua Gift Card MAD Vigevano. Il destinatario
-            riceverà un&apos;email con il codice per prenotare il suo trattamento.
+            riceverà un WhatsApp da MAD for Hair con il link per prenotare il suo trattamento.
           </p>
         </div>
       </section>
@@ -91,8 +91,8 @@ export default function Home() {
               <div>
                 <p className="font-display text-xl font-semibold text-ink">Ricevi subito o dopo</p>
                 <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
-                  Il destinatario riceve l&apos;email immediatamente — oppure scegli
-                  la data perfetta: Natale, un compleanno, un anniversario.
+                  Il destinatario riceve il WhatsApp immediatamente — oppure scegli
+                  la data e l&apos;ora perfetta: Natale, un compleanno, un anniversario.
                 </p>
               </div>
             </div>
@@ -115,7 +115,7 @@ export default function Home() {
               <div>
                 <p className="font-display text-xl font-semibold text-ink">Vieni in salone</p>
                 <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
-                  Mostra l&apos;email all&apos;ingresso di MAD Vigevano e goditi
+                  Mostra il codice all&apos;ingresso di MAD Vigevano e goditi
                   la tua esperienza di bellezza.
                 </p>
               </div>
@@ -141,7 +141,7 @@ export default function Home() {
                 <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                 <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
               </svg>
-              Consegna via email immediata
+              Consegna via WhatsApp immediata
             </div>
             <div className="flex items-center gap-2 text-xs text-ink-soft/70">
               <svg viewBox="0 0 20 20" className="h-4 w-4 text-gold/70" fill="currentColor">

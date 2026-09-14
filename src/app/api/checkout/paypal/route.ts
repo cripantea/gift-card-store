@@ -53,7 +53,7 @@ export async function POST(
         buyerLastName: buyer.lastName,
         buyerEmail: buyer.email,
         recipientName: recipient.recipientName,
-        recipientEmail: recipient.recipientEmail,
+        recipientPhone: recipient.recipientPhone,
         customMessage: recipient.customMessage ?? null,
         amount,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
