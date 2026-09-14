@@ -104,7 +104,7 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
         // scale overshoots 1.04 → feels like camera pushing IN
         tl.to(tilt, {
           opacity: 1, y: 0, x: 0, scale: 1.04,
-          filter: "blur(0px)", rotateX: 2, rotateY: -22,
+          filter: "blur(0px)", rotateX: 2, rotateY: -28,
           duration: 1.95, ease: "power3.out",
         }, 0.28)
         .to(stage,  { opacity: 0.50, duration: 1.2, ease: "power2.out" }, 0.28)
@@ -113,7 +113,7 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
 
         // Phase 2 — wide rotation reveal (2.3 – 5.1s)
         .to(tilt, {
-          rotateY: 24, rotateX: -5, scale: 1.06,
+          rotateY: 32, rotateX: -6, scale: 1.07,
           duration: 1.55, ease: "power2.inOut",
         }, 2.3)
         // rim switches sides as card turns right
@@ -132,7 +132,7 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
           rotateY: BASE_RY, rotateX: BASE_RX, scale: 1.0,
           duration: 1.45, ease: "power2.out",
         }, 3.85)
-        .to(rimR,   { opacity: 0.34, duration: 1.0, ease: "power2.inOut" }, 3.85)
+        .to(rimR,   { opacity: 0, duration: 1.0, ease: "power2.inOut" }, 3.85)
         .to(shadow, { scaleX: 0.88, x: -5, opacity: 0.60, duration: 1.2, ease: "power2.out" }, 3.85)
 
         // Phase 3 — hero moment (5.1 – 7.0s)
@@ -154,6 +154,8 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
           opacity: 0, stagger: { each: 0.04, from: "random" }, duration: 2.2, ease: "power1.in",
         }, "+=1.6")
         .to(shadow, { opacity: 0.58, scaleX: 0.86, x: -4, duration: 1.0 }, 5.4)
+        // clean up all light effects — nothing visible in idle
+        .set([rimL, rimR, beam1, beam2], { opacity: 0 }, 7.0)
 
         // Phase 4 — idle
         tl.call(() => { startIdle(0.25); }, [], 7.1);
@@ -170,9 +172,9 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
         // wait for Framer Motion entrance (1.7 s rise) then do condensed rotation
         const tl = gsap.timeline({ delay: 2.1 });
 
-        tl.to(tilt, { rotateY: -22, rotateX: 2, duration: 0.68, ease: "power3.out" })
+        tl.to(tilt, { rotateY: -28, rotateX: 2, duration: 0.68, ease: "power3.out" })
         .to(rimL,   { opacity: 0.90, duration: 0.38 }, 0.5)
-        .to(tilt,   { rotateY: 22, rotateX: -4, scale: 1.04, duration: 1.30, ease: "power2.inOut" })
+        .to(tilt,   { rotateY: 30, rotateX: -5, scale: 1.06, duration: 1.30, ease: "power2.inOut" })
         .fromTo(beam1,
           { xPercent: -118, opacity: 0 },
           { xPercent: 118, opacity: 0.74, duration: 0.88, ease: "sine.inOut" }, 1.28
@@ -180,7 +182,7 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
         .to(rimL,   { opacity: 0, duration: 0.40 }, 1.52)
         .to(rimR,   { opacity: 0.88, duration: 0.40 }, 1.52)
         .to(tilt,   { rotateY: BASE_RY, rotateX: BASE_RX, scale: 1.0, duration: 1.30, ease: "power2.out" })
-        .to(rimR,   { opacity: 0.32, duration: 0.90, ease: "power2.inOut" }, "-=0.8")
+        .to(rimR,   { opacity: 0, duration: 0.90, ease: "power2.inOut" }, "-=0.8")
         .to(shadow, { scaleX: 0.88, x: -4, opacity: 0.60, duration: 1.0 }, "-=0.8")
         .fromTo(beam2,
           { xPercent: -118, opacity: 0 },
@@ -194,6 +196,8 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
         .to(Array.from(dust.children), {
           opacity: 0, stagger: { each: 0.04, from: "random" }, duration: 2.0, ease: "power1.in",
         }, "+=1.4")
+        // clean up all light effects before idle
+        .set([rimL, rimR, beam1, beam2], { opacity: 0 })
 
         tl.call(() => { startIdle(0.2); });
       }
@@ -255,7 +259,7 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
   }, []);
 
   return (
-    <div ref={sceneRef} className="relative" style={{ perspective: "660px" }}>
+    <div ref={sceneRef} className="relative" style={{ perspective: "600px" }}>
 
       {/* Float layer — Y translation only */}
       <div ref={floatRef}>
