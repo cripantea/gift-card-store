@@ -18,7 +18,6 @@ import {
   type AdminStats,
 } from "@/app/cassa/actions";
 import { GiftCardStatus } from "@/generated/prisma/enums";
-import { FusionWAWidget } from "./FusionWAWidget";
 
 const currency = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" });
 const dateShort = new Intl.DateTimeFormat("it-IT", { dateStyle: "short" });
@@ -211,7 +210,6 @@ export function AdminDashboard() {
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <FusionWAWidget />
           <button
             onClick={handleRefresh}
             className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:border-gold-soft hover:text-ink"
