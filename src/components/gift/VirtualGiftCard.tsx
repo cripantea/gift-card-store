@@ -35,11 +35,37 @@ export function VirtualGiftCard({
           physical MÀD card — logo, amount, recipient/buyer, embossed code,
           expiry. Nothing here is allowed to grow the box, since aspect-ratio
           on a plain block clips overflow instead of expanding for content. */}
-      <div className="relative w-full overflow-hidden rounded-2xl border border-neutral-200/60 bg-neutral-50 p-4 shadow-2xl sm:aspect-[1.586/1] sm:p-6">
-        {/* Satin sheen */}
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,transparent_28%,rgba(255,255,255,0.75)_46%,transparent_64%)]" />
-        {/* Soft gold corner glow */}
-        <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-gold/15 blur-3xl" />
+      <div
+        className="relative w-full overflow-hidden rounded-2xl border bg-neutral-50 p-4 sm:aspect-[1.586/1] sm:p-6"
+        style={{
+          borderColor: "rgba(196,208,234,0.48)",
+          // Multi-layer shadow: simula un oggetto che galleggia in uno spazio scuro
+          // Strato 1: contatto, Strato 2: mid-distance, Strato 3: diffuso ambiente
+          boxShadow:
+            "0 1px 3px rgba(8,10,28,0.04), 0 8px 22px rgba(8,10,28,0.09), 0 26px 58px rgba(8,10,28,0.16)",
+        }}
+      >
+        {/* Satin sheen — banda stretta, leggermente fredda (luce blue/indigo) */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(115deg, transparent 34%, rgba(218,228,255,0.36) 49%, rgba(218,228,255,0.16) 55%, transparent 68%)",
+          }}
+        />
+        {/* Luce ambientale fredda da sinistra in alto — sorgente blue/indigo */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 72% 60% at 14% 8%, rgba(168,192,255,0.09) 0%, transparent 58%)",
+          }}
+        />
+        {/* Cold rim light — filo di luce cool sul bordo superiore */}
+        <div
+          className="pointer-events-none absolute -left-8 -top-8 h-48 w-48 rounded-full blur-[52px]"
+          style={{ background: "rgba(110,140,255,0.065)" }}
+        />
 
         <div className="relative flex flex-col items-center text-center">
           <Image
@@ -47,7 +73,12 @@ export function VirtualGiftCard({
             alt="MAD Vigevano"
             width={56}
             height={56}
-            className="h-9 w-9 drop-shadow-sm sm:h-11 sm:w-11"
+            className="h-9 w-9 sm:h-11 sm:w-11"
+            style={{
+              // Micro-riflesso metallico: ombra fredda sotto + hot-spot bianco sopra
+              filter:
+                "drop-shadow(0 1px 4px rgba(40,60,200,0.13)) drop-shadow(0 -1px 2px rgba(255,255,255,0.72))",
+            }}
           />
           <p className="mt-1.5 text-[0.55rem] font-medium uppercase tracking-[0.3em] text-neutral-400 sm:text-[0.6rem]">
             Gift Card
@@ -101,7 +132,13 @@ export function VirtualGiftCard({
           card right under the tessera, instead of squeezing (and clipping)
           it inside the fixed credit-card proportions above. */}
       {customMessage && (
-        <p className="rounded-xl border border-neutral-200/60 bg-neutral-50 px-4 py-3 font-display text-sm italic leading-relaxed text-neutral-600 shadow-sm">
+        <p
+          className="rounded-xl border bg-neutral-50 px-4 py-3 font-display text-sm italic leading-relaxed text-neutral-600"
+          style={{
+            borderColor: "rgba(196,208,234,0.44)",
+            boxShadow: "0 1px 4px rgba(8,10,28,0.04), 0 4px 14px rgba(8,10,28,0.06)",
+          }}
+        >
           &ldquo;{customMessage}&rdquo;
         </p>
       )}

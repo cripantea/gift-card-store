@@ -5,25 +5,25 @@ import gsap from "gsap";
 
 // ── Tuneable constants — adjust these without touching logic ──────────────
 const C = {
-  // Entrance
-  enterDuration:  1.4,   // s — card rise + focus
-  enterDelay:     0.20,  // s — initial pause before entrance starts
-  enterBlur:      8,     // px — starting blur
-  enterY:         36,    // px — starting Y offset
-  enterRotateX:   6,     // ° — initial 3D tilt on X axis
+  // Entrance — più lento, più peso, meno travel
+  enterDuration:  1.65,  // s — card rise + focus
+  enterDelay:     0.32,  // s — pausa intenzionale prima che parta
+  enterBlur:      6,     // px — sfocatura iniziale più sottile
+  enterY:         26,    // px — corsa più contenuta
+  enterRotateX:   4,     // ° — inclinazione iniziale più raffinata
 
-  // Idle float
-  floatAmp:       5,     // px — up/down amplitude (very subtle)
-  floatPeriod:    5.2,   // s — one half-cycle (yoyo)
+  // Idle float — quasi impercettibile
+  floatAmp:       4,     // px — ampiezza ridotta
+  floatPeriod:    6.8,   // s — half-period più lungo, respiro più lento
 
-  // Parallax tilt
-  tiltMax:        4,     // ° — max tilt on mousemove
-  tiltEase:       0.88,  // s — tilt response speed
-  tiltReturnEase: 1.3,   // s — return to center on mouseleave
+  // Parallax tilt — oggetto pesante, risposta lenta e ritorno morbido
+  tiltMax:        3,     // ° — inclinazione massima ridotta
+  tiltEase:       1.1,   // s — risposta più ponderata
+  tiltReturnEase: 1.9,   // s — ritorno al centro molto morbido
 
-  // Shimmer sweep
-  shimmerDelay:   [5, 10] as [number, number], // s — random interval
-  shimmerDur:     1.15,  // s — sweep transit time
+  // Shimmer — raro, lento, freddo (luce metallica non decorativa)
+  shimmerDelay:   [10, 18] as [number, number], // s — molto più raro
+  shimmerDur:     1.55,  // s — sweep più lento e cinematografico
 } as const;
 
 export interface CardSceneProps {
@@ -157,16 +157,16 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
         rotateX: -ny * C.tiltMax,
         rotateY:  nx * C.tiltMax,
         duration: C.tiltEase,
-        ease: "power2.out",
+        ease: "power3.out",
         overwrite: "auto",
       });
 
       if (shadow) {
         gsap.to(shadow, {
-          x:  nx * 10,
-          y:  ny *  5,
+          x:  nx * 8,
+          y:  ny * 4,
           duration: C.tiltEase,
-          ease: "power2.out",
+          ease: "power3.out",
           overwrite: "auto",
         });
       }
@@ -200,7 +200,7 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
 
   return (
     // Perspective container — mouse events live here
-    <div ref={sceneRef} className="relative" style={{ perspective: "900px" }}>
+    <div ref={sceneRef} className="relative" style={{ perspective: "1100px" }}>
 
       {/* Float layer — handles Y translation for idle */}
       <div ref={floatRef}>
@@ -218,14 +218,16 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
               creates a narrow bright stripe so only a sliver of light
               is visible as the element translates through.
               White bg outside card bounds makes the offscreen portions invisible. */}
+          {/* Shimmer — luce metallica fredda (blue-white), striscia stretta.
+              Viene usato raramente (10-18s): quando passa sembra luce reale,
+              non un gradiente decorativo. */}
           <div
             ref={shimmerRef}
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "linear-gradient(108deg, transparent 30%, rgba(255,255,255,0.40) 47%, rgba(255,255,255,0.52) 50%, rgba(255,255,255,0.40) 53%, transparent 70%)",
-              // Start fully off-left; GSAP drives xPercent -115 → 115
+                "linear-gradient(108deg, transparent 33%, rgba(208,222,255,0.26) 47%, rgba(225,237,255,0.38) 50%, rgba(208,222,255,0.26) 53%, transparent 67%)",
               transform: "translateX(-115%)",
               zIndex: 20,
             }}
