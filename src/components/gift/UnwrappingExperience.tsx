@@ -86,7 +86,7 @@ export function UnwrappingExperience({
   const isOpen       = stage === "opening" || stage === "revealed";
 
   return (
-    <div className="flex flex-col items-center gap-6 py-4 select-none">
+    <div className="flex flex-col items-center gap-8 py-6 select-none">
 
       <AnimatePresence mode="wait">
 
@@ -341,18 +341,18 @@ export function UnwrappingExperience({
       <AnimatePresence>
         {stage === "idle" && (
           <motion.div
-            className="flex flex-col items-center gap-2 text-center"
+            className="flex flex-col items-center gap-3 text-center"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.55, delay: 0.25 }}
           >
-            <p className="font-display text-2xl font-semibold text-ink">Hai ricevuto un regalo</p>
-            <p className="max-w-xs text-sm text-ink-soft">
+            <p className="font-display text-4xl font-semibold text-ink sm:text-5xl">Hai ricevuto un regalo</p>
+            <p className="max-w-sm text-base leading-relaxed text-ink-soft sm:text-lg">
               Qualcuno ha pensato a te con una Gift Card MAD Vigevano.
             </p>
             <motion.p
-              className="mt-2 text-[0.7rem] font-medium tracking-[0.22em] uppercase"
+              className="mt-1 text-sm font-medium tracking-[0.18em] uppercase sm:text-base"
               style={{ color: "#c3a06a" }}
               animate={{ opacity: [0.4, 1, 0.4] }}
               transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
