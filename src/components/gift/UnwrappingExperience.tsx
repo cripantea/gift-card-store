@@ -25,9 +25,10 @@ const PARTICLES = Array.from({ length: 28 }, (_, i) => {
   };
 });
 
-/* ─── Woven-textile ribbon — bianco + oro brillante ──────────────────── */
-const WOVEN_V = "repeating-linear-gradient(0deg,   #ffffff 0px, #ffe066 3px, #ffd700 6px, #ffe066 9px, #ffffff 12px)";
-const WOVEN_H = "repeating-linear-gradient(90deg,  #ffffff 0px, #ffe066 3px, #ffd700 6px, #ffe066 9px, #ffffff 12px)";
+/* ─── Woven-textile ribbon — oro caldo + bianco ───────────────────────
+   #c8961e = oro vero (caldo, non giallo), #f0d060 = highlight oro chiaro */
+const WOVEN_V = "repeating-linear-gradient(0deg,   #8a6415 0px, #c8961e 2px, #f0d060 5px, #ffffff 7px, #f0d060 9px, #c8961e 11px, #8a6415 14px)";
+const WOVEN_H = "repeating-linear-gradient(90deg,  #8a6415 0px, #c8961e 2px, #f0d060 5px, #ffffff 7px, #f0d060 9px, #c8961e 11px, #8a6415 14px)";
 
 /* ─── Easing ──────────────────────────────────────────────────────────── */
 const LIFT: [number, number, number, number] = [0.16, 1, 0.28, 1];
@@ -58,9 +59,9 @@ export function UnwrappingExperience({
     markGiftCardAsOpened(secretToken).catch(console.error);
     setStage("unwrapping");
     setTimeout(() => setStage("opening"),  1200);
-    // "revealed" starts after the lid has fully risen (1200 + 1850 = 3050ms)
-    // +200ms buffer so the open box interior is visible for a moment.
-    setTimeout(() => setStage("revealed"), 3250);
+    // "revealed" a 2400ms: il coperchio è ancora in movimento (finisce a 3050ms).
+    // L'uscita del box (0.4s) avviene mentre il lid sale → nessun rettangolo vuoto.
+    setTimeout(() => setStage("revealed"), 2400);
   }
 
   // Card entrance: faint appear → vibrate left/right → rise to final position.
@@ -112,34 +113,28 @@ export function UnwrappingExperience({
               transition={{ duration: 1.4 }}
             />
 
-            {/* Box base — interior */}
+            {/* Box base — bianco puro, con luce dorata all'apertura */}
             <div
               className="w-full rounded-2xl relative overflow-hidden"
               style={{
                 aspectRatio: "3/2",
-                background: "linear-gradient(158deg, #fdf8f1 0%, #efe3ce 100%)",
-                border: "1px solid rgba(165,138,100,0.28)",
+                background: "#ffffff",
+                border: "1px solid rgba(180,175,170,0.35)",
+                boxShadow: "0 2px 0 0 rgba(200,195,190,0.5) inset, 0 -2px 0 0 rgba(200,195,190,0.4) inset",
               }}
             >
+              {/* Luce dorata dall'interno — visibile solo mentre il lid sale */}
               <AnimatePresence>
                 {isOpen && (
                   <motion.div
-                    key="interior"
-                    className="absolute inset-0 rounded-2xl"
+                    key="glow"
+                    className="absolute inset-0 rounded-2xl pointer-events-none"
+                    style={{ background: "radial-gradient(ellipse 70% 60% at 50% 15%, rgba(200,150,30,0.22) 0%, transparent 65%)" }}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 1.0, delay: 0.5 }}
-                  >
-                    <div className="absolute inset-0 rounded-2xl" style={{ background: "linear-gradient(158deg, #fffcf4 0%, #f5e8d2 100%)" }} />
-                    <div className="absolute inset-4 rounded-xl" style={{ background: "linear-gradient(135deg, #ece0cb 0%, #dfd0b5 100%)", boxShadow: "inset 0 3px 16px rgba(0,0,0,0.14)" }} />
-                    <motion.div
-                      className="absolute inset-0 rounded-2xl pointer-events-none"
-                      style={{ background: "radial-gradient(ellipse 65% 55% at 50% 20%, rgba(246,196,83,0.5) 0%, transparent 70%)" }}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: [0, 1, 0.55] }}
-                      transition={{ duration: 1.6, times: [0, 0.25, 1] }}
-                    />
-                  </motion.div>
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.7 }}
+                  />
                 )}
               </AnimatePresence>
             </div>
@@ -150,19 +145,15 @@ export function UnwrappingExperience({
               animate={isOpen ? { y: "-118%", opacity: 0 } : { y: "0%", opacity: 1 }}
               transition={{ duration: 1.85, ease: LIFT, delay: 0.05 }}
             >
-              {/* Surface */}
+              {/* Lid — bianco puro come la scatola fisica */}
               <div className="absolute inset-0 rounded-2xl" style={{
-                background: "linear-gradient(155deg, #ffffff 0%, #f8f3ec 52%, #ede7dc 100%)",
-                boxShadow: "0 6px 36px rgba(0,0,0,0.13), inset 0 1px 0 rgba(255,255,255,0.96)",
-                border: "1px solid rgba(215,196,168,0.55)",
+                background: "#ffffff",
+                boxShadow: "0 8px 40px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,1)",
+                border: "1px solid rgba(180,175,170,0.35)",
               }} />
-              {/* Paper noise */}
-              <div className="absolute inset-0 rounded-2xl opacity-[0.04]" style={{
-                backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='3' height='3'%3E%3Ccircle cx='1' cy='1' r='0.75' fill='%23000'/%3E%3C/svg%3E\")",
-              }} />
-              {/* Satin sheen */}
-              <div className="absolute inset-0 rounded-2xl" style={{
-                background: "linear-gradient(118deg, transparent 24%, rgba(255,255,255,0.62) 43%, transparent 62%)",
+              {/* Satin sheen sottile */}
+              <div className="absolute inset-0 rounded-2xl pointer-events-none" style={{
+                background: "linear-gradient(118deg, transparent 25%, rgba(255,255,255,0.55) 44%, transparent 63%)",
               }} />
 
               {/* MAD Logo — large */}
@@ -299,33 +290,34 @@ function GoldBow() {
       style={{ opacity: 0.92 }}
     >
       <defs>
-        {/* Oro brillante puro — dal bianco all'oro acceso, niente marroni */}
+        {/* Oro caldo vero: #c8961e è "gold" percepito correttamente, non giallo.
+            Highlights in bianco puro + oro chiaro per l'effetto sbrillucicante. */}
         <linearGradient id="gL" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%"   stopColor="#ffffff" />
-          <stop offset="22%"  stopColor="#ffe566" />
-          <stop offset="46%"  stopColor="#ffd700" />
-          <stop offset="64%"  stopColor="#ffe566" />
+          <stop offset="18%"  stopColor="#f0d060" />
+          <stop offset="42%"  stopColor="#c8961e" />
+          <stop offset="60%"  stopColor="#f0d060" />
           <stop offset="100%" stopColor="#ffffff" />
         </linearGradient>
         <linearGradient id="gR" x1="1" y1="0" x2="0" y2="1">
           <stop offset="0%"   stopColor="#ffffff" />
-          <stop offset="22%"  stopColor="#ffe566" />
-          <stop offset="46%"  stopColor="#ffd700" />
-          <stop offset="64%"  stopColor="#ffe566" />
+          <stop offset="18%"  stopColor="#f0d060" />
+          <stop offset="42%"  stopColor="#c8961e" />
+          <stop offset="60%"  stopColor="#f0d060" />
           <stop offset="100%" stopColor="#ffffff" />
         </linearGradient>
         <linearGradient id="gK" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#ffffff" />
-          <stop offset="40%"  stopColor="#ffd700" />
-          <stop offset="100%" stopColor="#e8c000" />
+          <stop offset="0%"   stopColor="#f8e888" />
+          <stop offset="45%"  stopColor="#c8961e" />
+          <stop offset="100%" stopColor="#a07818" />
         </linearGradient>
         <linearGradient id="gT" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%"   stopColor="#ffffff" />
-          <stop offset="35%"  stopColor="#ffe566" />
-          <stop offset="100%" stopColor="#ffd700" />
+          <stop offset="30%"  stopColor="#f0d060" />
+          <stop offset="100%" stopColor="#c8961e" />
         </linearGradient>
         <filter id="s" x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="1" stdDeviation="2.5" floodColor="#c8a000" floodOpacity="0.4" />
+          <feDropShadow dx="0" dy="1" stdDeviation="2.5" floodColor="#7a5c10" floodOpacity="0.35" />
         </filter>
         <filter id="gl">
           <feGaussianBlur stdDeviation="1.8" result="b" />
