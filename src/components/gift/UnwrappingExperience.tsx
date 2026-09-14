@@ -83,23 +83,30 @@ export function UnwrappingExperience({
     setTimeout(() => setStage("revealed"), T_REVEALED);
   }
 
-  // Card entrance: faint appear → vibrate → slow rise
+  // Card entrance: invisible → emerge → vibrate → slow rise
   useEffect(() => {
     if (stage !== "revealed") return;
     let cancelled = false;
     const t = setTimeout(async () => {
       if (cancelled) return;
+      // Step 1: emerge quickly from invisible
       await cardControls.start({
-        x: [0, -9, 9, -5.5, 5.5, -2, 2, 0],
-        opacity: 0.72,
-        transition: { duration: 0.85, ease: "easeInOut" },
+        opacity: 0.68, y: 22, scale: 0.95,
+        transition: { duration: 0.5, ease: "easeOut" },
       });
       if (cancelled) return;
+      // Step 2: vibrate in place (y/scale unchanged from step 1)
+      await cardControls.start({
+        x: [0, -9, 9, -5.5, 5.5, -2, 2, 0],
+        transition: { duration: 0.82, ease: "easeInOut" },
+      });
+      if (cancelled) return;
+      // Step 3: slow majestic rise to final position
       await cardControls.start({
         x: 0, y: 0, opacity: 1, scale: 1,
         transition: { duration: 2.1, ease: [0.22, 1, 0.36, 1] },
       });
-    }, 500);
+    }, 150);
     return () => { cancelled = true; clearTimeout(t); };
   }, [stage, cardControls]);
 
@@ -116,10 +123,16 @@ export function UnwrappingExperience({
           <motion.div
             key="box"
             className="relative w-full"
-            animate={stage === "idle" ? { y: [0, -9, 0] } : { y: 0 }}
+            animate={
+              stage === "idle"    ? { y: [0, -9, 0], x: 0 } :
+              stage === "opening" ? { y: 0, x: [0, -5, 5, -3, 3, -1.5, 1, 0] } :
+                                    { y: 0, x: 0 }
+            }
             transition={
               stage === "idle"
                 ? { duration: 5.2, repeat: Infinity, ease: "easeInOut", repeatType: "mirror" }
+                : stage === "opening"
+                ? { duration: 2.4, delay: 0.2, ease: "easeInOut" }
                 : { duration: 0.55, ease: "easeOut" }
             }
             exit={{ opacity: 0, y: -10, scale: 0.96, transition: { duration: 0.9, ease: "easeInOut" } }}
@@ -144,17 +157,32 @@ export function UnwrappingExperience({
             >
               <AnimatePresence>
                 {isOpen && (
-                  <motion.div
-                    key="glow"
-                    className="absolute inset-0 rounded-2xl pointer-events-none"
-                    style={{
-                      background: "radial-gradient(ellipse 75% 65% at 50% 15%, rgba(200,150,30,0.26) 0%, transparent 68%)",
-                    }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 1.6 }}
-                  />
+                  <>
+                    {/* Glow dal basso — cresce gradualmente con il lid */}
+                    <motion.div
+                      key="glow"
+                      className="absolute inset-0 rounded-2xl pointer-events-none"
+                      style={{
+                        background: "radial-gradient(ellipse 80% 70% at 50% 10%, rgba(200,150,30,0.30) 0%, transparent 70%)",
+                      }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0, 0.35, 0.65, 1] }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 3.2, times: [0, 0.12, 0.5, 1], ease: "easeInOut" }}
+                    />
+                    {/* Light sweep — raggio di luce che entra mentre il lid sale */}
+                    <motion.div
+                      key="sweep"
+                      className="absolute inset-0 rounded-2xl pointer-events-none"
+                      style={{
+                        background: "linear-gradient(135deg, transparent 30%, rgba(255,240,160,0.22) 50%, transparent 70%)",
+                      }}
+                      initial={{ x: "-110%", opacity: 0 }}
+                      animate={{ x: "110%", opacity: [0, 0.8, 0] }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 1.8, delay: 0.6, ease: "easeOut" }}
+                    />
+                  </>
                 )}
               </AnimatePresence>
             </div>
@@ -324,7 +352,7 @@ export function UnwrappingExperience({
           <motion.div
             key="card"
             className="w-full"
-            initial={{ opacity: 0.38, y: 50, scale: 0.88, x: 0 }}
+            initial={{ opacity: 0, y: 60, scale: 0.88, x: 0 }}
             animate={cardControls}
           >
             {children}
