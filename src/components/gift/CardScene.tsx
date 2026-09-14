@@ -234,19 +234,8 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
 
       </div>
 
-      {/* Dynamic shadow — shifts slightly with parallax, breathes with float */}
-      <div
-        ref={shadowRef}
-        aria-hidden
-        className="pointer-events-none absolute inset-x-8 -bottom-2"
-        style={{
-          height: 20,
-          background: "rgba(55, 35, 8, 0.14)",
-          filter: "blur(22px)",
-          borderRadius: "50%",
-          transformOrigin: "center center",
-        }}
-      />
+      {/* Shadow placeholder — kept for parallax ref, invisible */}
+      <div ref={shadowRef} aria-hidden className="pointer-events-none" />
     </div>
   );
 }
