@@ -163,40 +163,43 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
       // ── SKIP ENTRANCE (inside UnwrappingExperience) ───────────────────────
       } else {
 
-        gsap.set(tilt,  { opacity: 1, rotateX: 0, rotateY: 0, clearProps: "filter,scale,y,x" });
+        // Card starts already tilted left — GSAP runs in parallel with the
+        // Framer Motion entrance (y 48→0, opacity 0→1). The sweep IS the reveal:
+        // card emerges from the box already mid-rotation, not after.
+        gsap.set(tilt,  { opacity: 1, rotateX: -2, rotateY: -32, clearProps: "filter,scale,y,x" });
         gsap.set(stage, { opacity: 0 });
         gsap.set([rimL, rimR, beam1, beam2, glint], { opacity: 0 });
         gsap.set(Array.from(dust.children), { opacity: 0 });
-        gsap.set(shadow, { opacity: 0.62, scaleX: 0.88 });
+        gsap.set(shadow, { opacity: 0, scaleX: 0.62 });
 
-        // wait for Framer Motion entrance (1.7 s rise) then do condensed rotation
-        const tl = gsap.timeline({ delay: 2.1 });
+        // Delay matches FM's own delay (0.08s) so they start together
+        const tl = gsap.timeline({ delay: 0.08 });
 
-        tl.to(tilt, { rotateY: -28, rotateX: 2, duration: 0.68, ease: "power3.out" })
-        .to(rimL,   { opacity: 0.90, duration: 0.38 }, 0.5)
-        .to(tilt,   { rotateY: 30, rotateX: -5, scale: 1.06, duration: 1.30, ease: "power2.inOut" })
+        // Sweep hard right — shows edge/back as card rises from box
+        tl.to(tilt, { rotateY: 30, rotateX: -5, scale: 1.12, duration: 1.05, ease: "power2.inOut" })
+        // Beam at rotation peak
         .fromTo(beam1,
           { xPercent: -118, opacity: 0 },
-          { xPercent: 118, opacity: 0.74, duration: 0.88, ease: "sine.inOut" }, 1.28
+          { xPercent: 118, opacity: 0.72, duration: 0.80, ease: "power2.inOut" },
+          0.65
         )
-        .to(rimL,   { opacity: 0, duration: 0.40 }, 1.52)
-        .to(rimR,   { opacity: 0.88, duration: 0.40 }, 1.52)
-        .to(tilt,   { rotateY: BASE_RY, rotateX: BASE_RX, scale: 1.0, duration: 1.30, ease: "power2.out" })
-        .to(rimR,   { opacity: 0, duration: 0.90, ease: "power2.inOut" }, "-=0.8")
-        .to(shadow, { scaleX: 0.88, x: -4, opacity: 0.60, duration: 1.0 }, "-=0.8")
-        .fromTo(beam2,
-          { xPercent: -118, opacity: 0 },
-          { xPercent: 118, opacity: 0.64, duration: 1.12, ease: "power2.inOut" }, "-=0.1"
-        )
-        .to(glint, { opacity: 1, scale: 1.65, duration: 0.24, ease: "power2.out" }, "-=0.72")
-        .to(glint, { opacity: 0, scale: 2.10, duration: 0.50, ease: "power2.in" }, "-=0.47")
+        .set(beam1, { opacity: 0 }, 1.5)
+        // Shadow surfaces with the card
+        .to(shadow, { opacity: 0.58, scaleX: 0.88, duration: 0.80, ease: "power2.out" }, 0.4)
+        // Spring settle to hero angle
+        .to(tilt, {
+          rotateY: BASE_RY, rotateX: BASE_RX, scale: 1.0,
+          duration: 0.82, ease: "back.out(1.5)",
+        }, 1.05)
+        // Glint + dust at hero moment
+        .to(glint, { opacity: 1, scale: 1.6, duration: 0.23, ease: "power2.out" }, 1.7)
+        .to(glint, { opacity: 0, scale: 2.2, duration: 0.48, ease: "power2.in" }, 1.93)
         .to(Array.from(dust.children), {
-          opacity: 0.58, y: "-=13", stagger: 0.05, duration: 1.5, ease: "power2.out",
-        }, "-=0.95")
+          opacity: 0.52, y: "-=12", stagger: 0.05, duration: 1.3, ease: "power2.out",
+        }, 1.75)
         .to(Array.from(dust.children), {
-          opacity: 0, stagger: { each: 0.04, from: "random" }, duration: 2.0, ease: "power1.in",
-        }, "+=1.4")
-        // clean up all light effects before idle
+          opacity: 0, stagger: { each: 0.04, from: "random" }, duration: 1.8, ease: "power1.in",
+        }, "+=1.0")
         .set([rimL, rimR, beam1, beam2], { opacity: 0 })
 
         tl.call(() => { startIdle(0.2); });

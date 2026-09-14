@@ -61,12 +61,6 @@ export function VirtualGiftCard({
               "radial-gradient(ellipse 72% 60% at 14% 8%, rgba(168,192,255,0.09) 0%, transparent 58%)",
           }}
         />
-        {/* Cold rim light — filo di luce cool sul bordo superiore */}
-        <div
-          className="pointer-events-none absolute -left-8 -top-8 h-48 w-48 rounded-full blur-[52px]"
-          style={{ background: "rgba(110,140,255,0.065)" }}
-        />
-
         <div className="relative flex flex-col items-center text-center">
           <Image
             src={MAD_LOGO_URL}
