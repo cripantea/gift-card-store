@@ -45,22 +45,6 @@ export function VirtualGiftCard({
             "0 1px 3px rgba(8,10,28,0.04), 0 8px 22px rgba(8,10,28,0.09), 0 26px 58px rgba(8,10,28,0.16)",
         }}
       >
-        {/* Satin sheen — banda stretta, leggermente fredda (luce blue/indigo) */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(115deg, transparent 34%, rgba(218,228,255,0.36) 49%, rgba(218,228,255,0.16) 55%, transparent 68%)",
-          }}
-        />
-        {/* Luce ambientale fredda da sinistra in alto — sorgente blue/indigo */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(ellipse 72% 60% at 14% 8%, rgba(168,192,255,0.09) 0%, transparent 58%)",
-          }}
-        />
         <div className="relative flex flex-col items-center text-center">
           <Image
             src={MAD_LOGO_URL}
@@ -71,7 +55,7 @@ export function VirtualGiftCard({
             style={{
               // Micro-riflesso metallico: ombra fredda sotto + hot-spot bianco sopra
               filter:
-                "drop-shadow(0 1px 4px rgba(40,60,200,0.13)) drop-shadow(0 -1px 2px rgba(255,255,255,0.72))",
+                "drop-shadow(0 -1px 2px rgba(255,255,255,0.72))",
             }}
           />
           <p className="mt-1.5 text-[0.55rem] font-medium uppercase tracking-[0.3em] text-neutral-400 sm:text-[0.6rem]">

@@ -80,7 +80,7 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
         function sched() {
           gsap.delayedCall(12 + Math.random() * 10, () => {
             gsap.fromTo(shimmer,
-              { xPercent: -118 },
+              { xPercent: -118, opacity: 1 },
               { xPercent: 118, duration: 1.58, ease: "power2.inOut", onComplete: sched }
             );
           });
@@ -285,70 +285,71 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
             style={{ background: "rgba(3,4,15,0.91)", zIndex: 21, opacity: 0 }}
           />
 
-          {/* Rim light — left edge, cold blue (card facing left during entry) */}
+          {/* Rim light — left edge, warm white */}
           <div
             ref={rimLRef}
             aria-hidden
             className="pointer-events-none absolute inset-y-0 left-0"
             style={{
               width: "26px",
-              background: "linear-gradient(to right, rgba(120,165,255,0.82) 0%, rgba(120,165,255,0.28) 55%, transparent 100%)",
+              background: "linear-gradient(to right, rgba(255,252,245,0.80) 0%, rgba(255,252,245,0.26) 55%, transparent 100%)",
               filter: "blur(7px)",
               zIndex: 26,
               opacity: 0,
             }}
           />
-          {/* Rim light — right edge, slightly warmer cold (card facing right during sweep) */}
+          {/* Rim light — right edge, warm white */}
           <div
             ref={rimRRef}
             aria-hidden
             className="pointer-events-none absolute inset-y-0 right-0"
             style={{
               width: "26px",
-              background: "linear-gradient(to left, rgba(175,208,255,0.78) 0%, rgba(175,208,255,0.24) 55%, transparent 100%)",
+              background: "linear-gradient(to left, rgba(255,252,245,0.78) 0%, rgba(255,252,245,0.22) 55%, transparent 100%)",
               filter: "blur(7px)",
               zIndex: 26,
               opacity: 0,
             }}
           />
 
-          {/* Beam 1 — diagonal cold stripe, sweeps at rotation peak */}
+          {/* Beam 1 — neutral warm-white diagonal, sweeps at rotation peak */}
           <div
             ref={beam1Ref}
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
-              background: "linear-gradient(108deg, transparent 30%, rgba(192,215,255,0.46) 45%, rgba(212,232,255,0.62) 50%, rgba(192,215,255,0.46) 55%, transparent 70%)",
+              background: "linear-gradient(108deg, transparent 30%, rgba(255,252,245,0.42) 45%, rgba(255,255,255,0.58) 50%, rgba(255,252,245,0.42) 55%, transparent 70%)",
               transform: "translateX(-118%)",
               zIndex: 23,
               opacity: 0,
             }}
           />
-          {/* Beam 2 — slightly wider, softer; hero moment */}
+          {/* Beam 2 — hero moment, same neutral palette */}
           <div
             ref={beam2Ref}
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
-              background: "linear-gradient(103deg, transparent 26%, rgba(202,222,255,0.38) 43%, rgba(228,242,255,0.62) 50%, rgba(202,222,255,0.38) 57%, transparent 74%)",
+              background: "linear-gradient(103deg, transparent 26%, rgba(255,252,245,0.36) 43%, rgba(255,255,255,0.55) 50%, rgba(255,252,245,0.36) 57%, transparent 74%)",
               transform: "translateX(-118%)",
               zIndex: 23,
               opacity: 0,
             }}
           />
-          {/* Shimmer — post-sequence idle, fired every 12-22 s */}
+          {/* Shimmer — post-sequence idle; starts hidden (opacity:0), GSAP
+              sets opacity:1 only during the sweep so it is never visible at rest */}
           <div
             ref={shimmerRef}
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
-              background: "linear-gradient(108deg, transparent 33%, rgba(208,222,255,0.24) 47%, rgba(226,238,255,0.36) 50%, rgba(208,222,255,0.24) 53%, transparent 67%)",
-              transform: "translateX(-118%)",
+              background: "linear-gradient(108deg, transparent 33%, rgba(255,252,245,0.22) 47%, rgba(255,255,255,0.32) 50%, rgba(255,252,245,0.22) 53%, transparent 67%)",
               zIndex: 22,
+              opacity: 0,
             }}
           />
 
-          {/* Logo glint — radial burst near logo (top-center) at hero moment */}
+          {/* Logo glint — pure white radial burst, no blue */}
           <div
             ref={glintRef}
             aria-hidden
@@ -358,7 +359,7 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
               transform: "translate(-50%, -50%) scale(1)",
               width: "54px", height: "54px",
               borderRadius: "50%",
-              background: "radial-gradient(circle, rgba(255,255,255,0.96) 0%, rgba(208,230,255,0.62) 35%, transparent 70%)",
+              background: "radial-gradient(circle, rgba(255,255,255,0.96) 0%, rgba(255,252,245,0.55) 35%, transparent 70%)",
               filter: "blur(4px)",
               zIndex: 28,
               opacity: 0,
@@ -382,8 +383,8 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
                   width: `${p.r}px`,
                   height: `${p.r}px`,
                   borderRadius: "50%",
-                  background: "rgba(195,218,255,0.82)",
-                  boxShadow: `0 0 ${p.r * 2.8}px rgba(185,210,255,0.55)`,
+                  background: "rgba(255,252,245,0.80)",
+                  boxShadow: `0 0 ${p.r * 2.8}px rgba(255,248,235,0.50)`,
                   opacity: 0,
                 }}
               />
