@@ -31,7 +31,7 @@
 
   --font-sans: Arial, Helvetica, sans-serif;
   --font-mono: ui-monospace, "Courier New", monospace;
-  --font-display: var(--font-cormorant);
+  --font-display: Georgia, "Times New Roman", serif;
 }
 
 body {

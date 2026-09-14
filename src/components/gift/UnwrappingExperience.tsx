@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import Image from "next/image";
 import { MAD_LOGO_URL } from "@/lib/brand";
@@ -64,7 +64,7 @@ export function UnwrappingExperience({
   children: ReactNode;
 }) {
   const [stage, setStage]  = useState<Stage>("idle");
-  const bowDir             = useRef({ x: 0, y: -1 });
+  const [bowDir, setBowDir] = useState({ x: 0, y: -1 });
 
   function handleDragEnd(_: unknown, info: PanInfo) {
     if (stage !== "idle") return;
@@ -74,7 +74,7 @@ export function UnwrappingExperience({
     const dx  = info.velocity.x || info.offset.x;
     const dy  = info.velocity.y || info.offset.y;
     const len = Math.sqrt(dx ** 2 + dy ** 2) || 1;
-    bowDir.current = { x: dx / len, y: dy / len };
+    setBowDir({ x: dx / len, y: dy / len });
 
     markGiftCardAsOpened(secretToken).catch(console.error);
     setStage("unwrapping");
@@ -272,7 +272,7 @@ export function UnwrappingExperience({
               whileTap={stage === "idle" ? { scale: 0.92 } : {}}
               animate={
                 isUnwrapping
-                  ? { x: bowDir.current.x * 420, y: bowDir.current.y * 420, scale: 0, rotate: 260, opacity: 0 }
+                  ? { x: bowDir.x * 420, y: bowDir.y * 420, scale: 0, rotate: 260, opacity: 0 }
                   : { x: 0, y: 0, scale: 1, rotate: 0, opacity: 1 }
               }
               transition={

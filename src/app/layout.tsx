@@ -1,13 +1,6 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond } from "next/font/google";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import "./globals.css";
-
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
 
 export const metadata: Metadata = {
   title: "MAD Vigevano — Gift Card",
@@ -17,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="it" className={`${cormorant.variable} h-full`}>
+    <html lang="it" className="h-full">
       <body className="min-h-full flex flex-col bg-paper text-ink antialiased">
         <SiteHeader />
         {children}
