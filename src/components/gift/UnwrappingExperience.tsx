@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState, useEffect, type ReactNode } from "react";
-import { motion, AnimatePresence, useAnimation, type PanInfo } from "framer-motion";
+import { useRef, useState, type ReactNode } from "react";
+import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import Image from "next/image";
 import { MAD_LOGO_URL } from "@/lib/brand";
 import { markGiftCardAsOpened } from "@/app/gift/[token]/actions";
@@ -65,7 +65,6 @@ export function UnwrappingExperience({
 }) {
   const [stage, setStage]  = useState<Stage>("idle");
   const bowDir             = useRef({ x: 0, y: -1 });
-  const cardControls       = useAnimation();
 
   function handleDragEnd(_: unknown, info: PanInfo) {
     if (stage !== "idle") return;
@@ -82,33 +81,6 @@ export function UnwrappingExperience({
     setTimeout(() => setStage("opening"),  T_OPENING);
     setTimeout(() => setStage("revealed"), T_REVEALED);
   }
-
-  // Card entrance: invisible → emerge → vibrate → slow rise
-  useEffect(() => {
-    if (stage !== "revealed") return;
-    let cancelled = false;
-    const t = setTimeout(async () => {
-      if (cancelled) return;
-      // Step 1: emerge quickly from invisible
-      await cardControls.start({
-        opacity: 0.68, y: 22, scale: 0.95,
-        transition: { duration: 0.5, ease: "easeOut" },
-      });
-      if (cancelled) return;
-      // Step 2: vibrate in place (y/scale unchanged from step 1)
-      await cardControls.start({
-        x: [0, -9, 9, -5.5, 5.5, -2, 2, 0],
-        transition: { duration: 0.82, ease: "easeInOut" },
-      });
-      if (cancelled) return;
-      // Step 3: slow majestic rise to final position
-      await cardControls.start({
-        x: 0, y: 0, opacity: 1, scale: 1,
-        transition: { duration: 2.1, ease: [0.22, 1, 0.36, 1] },
-      });
-    }, 150);
-    return () => { cancelled = true; clearTimeout(t); };
-  }, [stage, cardControls]);
 
   const isUnwrapping = stage !== "idle";
   const isOpen       = stage === "opening" || stage === "revealed";
@@ -348,12 +320,16 @@ export function UnwrappingExperience({
         )}
 
         {/* ─── REAL GIFT CARD ───────────────────────────────────────── */}
+        {/* Monta DOPO che il box ha finito l'exit (mode="wait").
+            Framer Motion anima da initial verso animate non appena monta —
+            niente useAnimation, niente timing fragility. */}
         {stage === "revealed" && (
           <motion.div
             key="card"
             className="w-full"
-            initial={{ opacity: 0, y: 60, scale: 0.88, x: 0 }}
-            animate={cardControls}
+            initial={{ opacity: 0, y: 48, scale: 0.91 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 1.7, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
           >
             {children}
           </motion.div>
