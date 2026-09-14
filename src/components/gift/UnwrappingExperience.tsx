@@ -25,9 +25,9 @@ const PARTICLES = Array.from({ length: 28 }, (_, i) => {
   };
 });
 
-/* ─── Woven-textile ribbon ────────────────────────────────────────────── */
-const WOVEN_V = "repeating-linear-gradient(0deg,   #55320a 0px, #b88c28 3px, #e8cc58 6px, #b88c28 9px, #55320a 12px)";
-const WOVEN_H = "repeating-linear-gradient(90deg,  #55320a 0px, #b88c28 3px, #e8cc58 6px, #b88c28 9px, #55320a 12px)";
+/* ─── Woven-textile ribbon — bianco + oro brillante ──────────────────── */
+const WOVEN_V = "repeating-linear-gradient(0deg,   #ffffff 0px, #ffe066 3px, #ffd700 6px, #ffe066 9px, #ffffff 12px)";
+const WOVEN_H = "repeating-linear-gradient(90deg,  #ffffff 0px, #ffe066 3px, #ffd700 6px, #ffe066 9px, #ffffff 12px)";
 
 /* ─── Easing ──────────────────────────────────────────────────────────── */
 const LIFT: [number, number, number, number] = [0.16, 1, 0.28, 1];
@@ -288,51 +288,48 @@ export function UnwrappingExperience({
   );
 }
 
-/* ─── Gold bow SVG — metallico, glitter, semi-trasparente ─────────────── */
+/* ─── Gold bow SVG — bianco + oro acceso, brillantina ────────────────── */
 function GoldBow() {
   return (
-    // opacity: 0.86 → leggermente semi-trasparente come il vero fiocco in tessuto metallico
     <svg
       width="160" height="112"
       viewBox="0 0 160 112"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ opacity: 0.87 }}
+      style={{ opacity: 0.92 }}
     >
       <defs>
-        {/* Gradiente principale — contrasto alto per effetto metallico brillante */}
+        {/* Oro brillante puro — dal bianco all'oro acceso, niente marroni */}
         <linearGradient id="gL" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#2c1a04" />
-          <stop offset="14%"  stopColor="#a07820" />
-          <stop offset="36%"  stopColor="#f8e870" />   {/* highlight quasi bianco-oro */}
-          <stop offset="55%"  stopColor="#ffe090" />   {/* top speculare */}
-          <stop offset="74%"  stopColor="#c09030" />
-          <stop offset="100%" stopColor="#2c1a04" />
+          <stop offset="0%"   stopColor="#ffffff" />
+          <stop offset="22%"  stopColor="#ffe566" />
+          <stop offset="46%"  stopColor="#ffd700" />
+          <stop offset="64%"  stopColor="#ffe566" />
+          <stop offset="100%" stopColor="#ffffff" />
         </linearGradient>
         <linearGradient id="gR" x1="1" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#2c1a04" />
-          <stop offset="14%"  stopColor="#a07820" />
-          <stop offset="36%"  stopColor="#f8e870" />
-          <stop offset="55%"  stopColor="#ffe090" />
-          <stop offset="74%"  stopColor="#c09030" />
-          <stop offset="100%" stopColor="#2c1a04" />
+          <stop offset="0%"   stopColor="#ffffff" />
+          <stop offset="22%"  stopColor="#ffe566" />
+          <stop offset="46%"  stopColor="#ffd700" />
+          <stop offset="64%"  stopColor="#ffe566" />
+          <stop offset="100%" stopColor="#ffffff" />
         </linearGradient>
         <linearGradient id="gK" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#ffe090" />
-          <stop offset="45%"  stopColor="#c09030" />
-          <stop offset="100%" stopColor="#2c1a04" />
+          <stop offset="0%"   stopColor="#ffffff" />
+          <stop offset="40%"  stopColor="#ffd700" />
+          <stop offset="100%" stopColor="#e8c000" />
         </linearGradient>
-        {/* Highlight bianco per sparkle */}
-        <radialGradient id="spark" cx="50%" cy="30%" r="50%">
-          <stop offset="0%"  stopColor="#fffde0" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#fffde0" stopOpacity="0" />
-        </radialGradient>
+        <linearGradient id="gT" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#ffffff" />
+          <stop offset="35%"  stopColor="#ffe566" />
+          <stop offset="100%" stopColor="#ffd700" />
+        </linearGradient>
         <filter id="s" x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="2" stdDeviation="3.5" floodColor="#120a00" floodOpacity="0.5" />
+          <feDropShadow dx="0" dy="1" stdDeviation="2.5" floodColor="#c8a000" floodOpacity="0.4" />
         </filter>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="2" result="blur" />
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        <filter id="gl">
+          <feGaussianBlur stdDeviation="1.8" result="b" />
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
       </defs>
 
@@ -341,15 +338,10 @@ function GoldBow() {
         d="M 76 62 C 62 42 32 12 10 24 C -2 31 1 52 20 58 C 38 64 68 65 76 62 Z"
         fill="url(#gL)" filter="url(#s)"
       />
-      {/* Highlight interno loop sinistro */}
+      {/* Speculare bianco sul loop */}
       <path
-        d="M 76 62 C 64 44 38 18 20 28 C 13 33 16 48 30 53 C 46 59 70 63 76 62 Z"
-        fill="rgba(255,248,160,0.28)"
-      />
-      {/* Speculare bianco loop sinistro */}
-      <path
-        d="M 60 38 C 50 28 35 18 22 24"
-        stroke="rgba(255,252,220,0.55)" strokeWidth="5" strokeLinecap="round"
+        d="M 74 58 C 62 43 40 20 22 27"
+        stroke="rgba(255,255,255,0.75)" strokeWidth="6" strokeLinecap="round"
       />
 
       {/* ── Loop destro ── */}
@@ -357,36 +349,34 @@ function GoldBow() {
         d="M 84 62 C 98 42 128 12 150 24 C 162 31 159 52 140 58 C 122 64 92 65 84 62 Z"
         fill="url(#gR)" filter="url(#s)"
       />
-      {/* Highlight interno loop destro */}
+      {/* Speculare bianco sul loop */}
       <path
-        d="M 84 62 C 96 44 122 18 140 28 C 147 33 144 48 130 53 C 114 59 90 63 84 62 Z"
-        fill="rgba(255,248,160,0.28)"
-      />
-      {/* Speculare bianco loop destro */}
-      <path
-        d="M 100 38 C 110 28 125 18 138 24"
-        stroke="rgba(255,252,220,0.55)" strokeWidth="5" strokeLinecap="round"
+        d="M 86 58 C 98 43 120 20 138 27"
+        stroke="rgba(255,255,255,0.75)" strokeWidth="6" strokeLinecap="round"
       />
 
-      {/* ── Code ── */}
-      <path d="M 70 72 C 54 86 38 98 22 108" stroke="url(#gL)" strokeWidth="15" strokeLinecap="round" filter="url(#s)" />
-      <path d="M 70 72 C 54 86 38 98 22 108" stroke="rgba(255,248,160,0.22)" strokeWidth="6" strokeLinecap="round" />
+      {/* ── Coda sinistra ── */}
+      <path d="M 70 72 C 54 86 38 98 22 108" stroke="url(#gT)" strokeWidth="15" strokeLinecap="round" filter="url(#s)" />
+      <path d="M 70 72 C 54 86 38 98 22 108" stroke="rgba(255,255,255,0.55)" strokeWidth="5" strokeLinecap="round" />
 
-      <path d="M 90 72 C 106 86 122 98 138 108" stroke="url(#gR)" strokeWidth="15" strokeLinecap="round" filter="url(#s)" />
-      <path d="M 90 72 C 106 86 122 98 138 108" stroke="rgba(255,248,160,0.22)" strokeWidth="6" strokeLinecap="round" />
+      {/* ── Coda destra ── */}
+      <path d="M 90 72 C 106 86 122 98 138 108" stroke="url(#gT)" strokeWidth="15" strokeLinecap="round" filter="url(#s)" />
+      <path d="M 90 72 C 106 86 122 98 138 108" stroke="rgba(255,255,255,0.55)" strokeWidth="5" strokeLinecap="round" />
 
       {/* ── Nodo centrale ── */}
       <ellipse cx="80" cy="62" rx="17" ry="13" fill="url(#gK)" filter="url(#s)" />
-      <ellipse cx="80" cy="57" rx="11" ry="7"  fill="rgba(255,252,200,0.5)" />
+      <ellipse cx="80" cy="57" rx="11" ry="7"  fill="rgba(255,255,255,0.65)" />
 
-      {/* ── Sparkle dots — effetto brillantina ── */}
-      <circle cx="32"  cy="40" r="2.2" fill="#fffde0" opacity="0.85" filter="url(#glow)" />
-      <circle cx="128" cy="38" r="2.0" fill="#fffde0" opacity="0.80" filter="url(#glow)" />
-      <circle cx="56"  cy="74" r="1.8" fill="#fffde0" opacity="0.75" filter="url(#glow)" />
-      <circle cx="104" cy="75" r="1.8" fill="#fffde0" opacity="0.75" filter="url(#glow)" />
-      <circle cx="80"  cy="42" r="1.5" fill="#fffde0" opacity="0.70" filter="url(#glow)" />
-      <circle cx="44"  cy="28" r="1.4" fill="#fffde0" opacity="0.65" />
-      <circle cx="116" cy="30" r="1.4" fill="#fffde0" opacity="0.65" />
+      {/* ── Sparkle — puntini bianchi brillantina ── */}
+      <circle cx="28"  cy="38" r="2.5" fill="#ffffff" opacity="0.95" filter="url(#gl)" />
+      <circle cx="132" cy="36" r="2.2" fill="#ffffff" opacity="0.90" filter="url(#gl)" />
+      <circle cx="52"  cy="20" r="1.8" fill="#ffffff" opacity="0.85" filter="url(#gl)" />
+      <circle cx="108" cy="20" r="1.8" fill="#ffffff" opacity="0.85" filter="url(#gl)" />
+      <circle cx="80"  cy="40" r="1.6" fill="#ffffff" opacity="0.80" filter="url(#gl)" />
+      <circle cx="40"  cy="56" r="1.5" fill="#ffffff" opacity="0.75" />
+      <circle cx="120" cy="55" r="1.5" fill="#ffffff" opacity="0.75" />
+      <circle cx="64"  cy="78" r="1.4" fill="#ffffff" opacity="0.70" />
+      <circle cx="96"  cy="78" r="1.4" fill="#ffffff" opacity="0.70" />
     </svg>
   );
 }
