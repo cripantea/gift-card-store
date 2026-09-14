@@ -7,31 +7,52 @@ import { MAD_LOGO_URL } from "@/lib/brand";
 import { markGiftCardAsOpened } from "@/app/gift/[token]/actions";
 
 /* ─── Stage machine ───────────────────────────────────────────────────── */
-// idle → unwrapping → opening → revealed
-// "revealed" shows the REAL VirtualGiftCard (children) — no placeholder.
 type Stage = "idle" | "unwrapping" | "opening" | "revealed";
 
-/* ─── Gold particles ──────────────────────────────────────────────────── */
-const PARTICLES = Array.from({ length: 28 }, (_, i) => {
-  const angle = (i / 28) * 360;
-  const r = 68 + (i % 6) * 18;
+/* ─── Particles — 44 pieces, richer burst ────────────────────────────── */
+const PARTICLES = Array.from({ length: 44 }, (_, i) => {
+  const angle = (i / 44) * 360 + (i % 5) * 9;
+  const r = 48 + (i % 9) * 24;
   return {
     id: i,
     x: Math.cos((angle * Math.PI) / 180) * r,
-    y: Math.sin((angle * Math.PI) / 180) * r - 22,
-    size: 3 + (i % 5),
-    delay: (i % 9) * 0.024,
-    color: ["#f6c453", "#fde9a8", "#c3a06a", "#e8d48a", "#a4794b", "#fdf0c0"][i % 6],
+    y: Math.sin((angle * Math.PI) / 180) * r - 30,
+    size: 2.5 + (i % 7),
+    delay: (i % 14) * 0.026,
+    color: ["#f6c453", "#fde9a8", "#c3a06a", "#e8d48a", "#a4794b", "#fdf0c0", "#ffffff", "#f0d060"][i % 8],
   };
 });
 
-/* ─── Woven-textile ribbon — oro caldo + bianco ───────────────────────
-   #c8961e = oro vero (caldo, non giallo), #f0d060 = highlight oro chiaro */
-const WOVEN_V = "repeating-linear-gradient(0deg,   #8a6415 0px, #c8961e 2px, #f0d060 5px, #ffffff 7px, #f0d060 9px, #c8961e 11px, #8a6415 14px)";
-const WOVEN_H = "repeating-linear-gradient(90deg,  #8a6415 0px, #c8961e 2px, #f0d060 5px, #ffffff 7px, #f0d060 9px, #c8961e 11px, #8a6415 14px)";
+/* ─── Ribbon — semi-trasparente, oro come il logo ─────────────────────
+   rgba so the white box surface shows through (same gold as the MAD logo) */
+const WOVEN_V = [
+  "repeating-linear-gradient(0deg,",
+  "transparent 0px,",
+  "rgba(164,121,75,0.48) 1.5px,",
+  "rgba(195,160,106,0.74) 4.5px,",
+  "rgba(255,248,210,0.86) 7px,",
+  "rgba(195,160,106,0.74) 9.5px,",
+  "rgba(164,121,75,0.48) 12.5px,",
+  "transparent 14px)",
+].join(" ");
+
+const WOVEN_H = [
+  "repeating-linear-gradient(90deg,",
+  "transparent 0px,",
+  "rgba(164,121,75,0.48) 1.5px,",
+  "rgba(195,160,106,0.74) 4.5px,",
+  "rgba(255,248,210,0.86) 7px,",
+  "rgba(195,160,106,0.74) 9.5px,",
+  "rgba(164,121,75,0.48) 12.5px,",
+  "transparent 14px)",
+].join(" ");
 
 /* ─── Easing ──────────────────────────────────────────────────────────── */
 const LIFT: [number, number, number, number] = [0.16, 1, 0.28, 1];
+
+/* ─── Timings (ms from drag) ──────────────────────────────────────────── */
+const T_OPENING  = 2400;  // ribbon dissolves, then lid starts rising
+const T_REVEALED = 5600;  // lid fully gone (2400 + 2800 lid + 400 buffer)
 
 /* ─────────────────────────────────────────────────────────────────────── */
 
@@ -58,33 +79,27 @@ export function UnwrappingExperience({
 
     markGiftCardAsOpened(secretToken).catch(console.error);
     setStage("unwrapping");
-    setTimeout(() => setStage("opening"),  1200);
-    // "revealed" a 2400ms: il coperchio è ancora in movimento (finisce a 3050ms).
-    // L'uscita del box (0.4s) avviene mentre il lid sale → nessun rettangolo vuoto.
-    setTimeout(() => setStage("revealed"), 2400);
+    setTimeout(() => setStage("opening"),  T_OPENING);
+    setTimeout(() => setStage("revealed"), T_REVEALED);
   }
 
-  // Card entrance: faint appear → vibrate left/right → rise to final position.
+  // Card entrance: faint appear → vibrate → slow rise
   useEffect(() => {
     if (stage !== "revealed") return;
     let cancelled = false;
-
-    // Small delay: AnimatePresence mode="wait" exits the box first (0.4s)
-    // then mounts the card — we wait for mount before starting the sequence.
     const t = setTimeout(async () => {
       if (cancelled) return;
       await cardControls.start({
-        x: [0, -6, 6, -3.5, 3.5, -1.5, 1.5, 0],
-        opacity: 0.65,
-        transition: { duration: 0.58, ease: "easeInOut" },
+        x: [0, -9, 9, -5.5, 5.5, -2, 2, 0],
+        opacity: 0.72,
+        transition: { duration: 0.85, ease: "easeInOut" },
       });
       if (cancelled) return;
       await cardControls.start({
         x: 0, y: 0, opacity: 1, scale: 1,
-        transition: { duration: 1.55, ease: [0.22, 1, 0.36, 1] },
+        transition: { duration: 2.1, ease: [0.22, 1, 0.36, 1] },
       });
-    }, 420);
-
+    }, 500);
     return () => { cancelled = true; clearTimeout(t); };
   }, [stage, cardControls]);
 
@@ -96,24 +111,28 @@ export function UnwrappingExperience({
 
       <AnimatePresence mode="wait">
 
-        {/* ─── BOX (visible until revealed) ─────────────────────────── */}
+        {/* ─── BOX ─────────────────────────────────────────────────── */}
         {stage !== "revealed" && (
           <motion.div
             key="box"
             className="relative w-full"
-            exit={{ opacity: 0, y: -14, transition: { duration: 0.4, ease: "easeIn" } }}
-            animate={stage === "idle" ? { y: [0, -8, 0] } : { y: 0 }}
-            transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut", repeatType: "mirror" }}
+            animate={stage === "idle" ? { y: [0, -9, 0] } : { y: 0 }}
+            transition={
+              stage === "idle"
+                ? { duration: 5.2, repeat: Infinity, ease: "easeInOut", repeatType: "mirror" }
+                : { duration: 0.55, ease: "easeOut" }
+            }
+            exit={{ opacity: 0, y: -10, scale: 0.96, transition: { duration: 0.9, ease: "easeInOut" } }}
           >
             {/* Drop shadow */}
             <motion.div
               className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
               style={{ width: "68%", height: 22, background: "rgba(0,0,0,0.18)", filter: "blur(18px)" }}
-              animate={isOpen ? { scaleX: 0.4, opacity: 0.28 } : { scaleX: 1, opacity: 1 }}
-              transition={{ duration: 1.4 }}
+              animate={isOpen ? { scaleX: 0.3, opacity: 0.15 } : { scaleX: 1, opacity: 1 }}
+              transition={{ duration: 2.2 }}
             />
 
-            {/* Box base — bianco puro, con luce dorata all'apertura */}
+            {/* Box base */}
             <div
               className="w-full rounded-2xl relative overflow-hidden"
               style={{
@@ -123,68 +142,107 @@ export function UnwrappingExperience({
                 boxShadow: "0 2px 0 0 rgba(200,195,190,0.5) inset, 0 -2px 0 0 rgba(200,195,190,0.4) inset",
               }}
             >
-              {/* Luce dorata dall'interno — visibile solo mentre il lid sale */}
               <AnimatePresence>
                 {isOpen && (
                   <motion.div
                     key="glow"
                     className="absolute inset-0 rounded-2xl pointer-events-none"
-                    style={{ background: "radial-gradient(ellipse 70% 60% at 50% 15%, rgba(200,150,30,0.22) 0%, transparent 65%)" }}
+                    style={{
+                      background: "radial-gradient(ellipse 75% 65% at 50% 15%, rgba(200,150,30,0.26) 0%, transparent 68%)",
+                    }}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.7 }}
+                    transition={{ duration: 1.6 }}
                   />
                 )}
               </AnimatePresence>
             </div>
 
-            {/* Box lid — rises straight up */}
+            {/* Box lid — rises very slowly */}
             <motion.div
               className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
-              animate={isOpen ? { y: "-118%", opacity: 0 } : { y: "0%", opacity: 1 }}
-              transition={{ duration: 1.85, ease: LIFT, delay: 0.05 }}
+              animate={isOpen ? { y: "-125%", opacity: 0 } : { y: "0%", opacity: 1 }}
+              transition={{ duration: 2.8, ease: LIFT, delay: 0.14 }}
             >
-              {/* Lid — bianco puro come la scatola fisica */}
+              {/* Lid surface — pure white */}
               <div className="absolute inset-0 rounded-2xl" style={{
                 background: "#ffffff",
-                boxShadow: "0 8px 40px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,1)",
+                boxShadow: "0 10px 48px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,1)",
                 border: "1px solid rgba(180,175,170,0.35)",
               }} />
-              {/* Satin sheen sottile */}
+              {/* Satin sheen */}
               <div className="absolute inset-0 rounded-2xl pointer-events-none" style={{
                 background: "linear-gradient(118deg, transparent 25%, rgba(255,255,255,0.55) 44%, transparent 63%)",
               }} />
 
-              {/* MAD Logo — large */}
+              {/* MAD Logo — large, centered */}
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none" style={{ zIndex: 10 }}>
                 <Image
                   src={MAD_LOGO_URL} alt="MAD" width={160} height={160}
-                  className="w-28 h-28 sm:w-32 sm:h-32"
-                  style={{ opacity: 0.82, filter: "sepia(0.08) saturate(0.92)" }}
+                  className="w-28 h-28 sm:w-36 sm:h-36"
+                  style={{ opacity: 0.85, filter: "sepia(0.08) saturate(0.92)" }}
                 />
                 <p className="font-sans font-semibold uppercase tracking-[0.44em]" style={{ color: "#b8903a", fontSize: "0.53rem" }}>
                   #madforhair
                 </p>
               </div>
 
-              {/* Vertical ribbon */}
+              {/* Vertical ribbon + shimmer */}
               <motion.div
-                className="absolute inset-y-0 left-1/2 -translate-x-1/2 pointer-events-none"
-                style={{ width: "11.5%", background: WOVEN_V, boxShadow: "2px 0 10px rgba(0,0,0,0.24), -1px 0 5px rgba(0,0,0,0.14)", zIndex: 20 }}
+                className="absolute inset-y-0 left-1/2 -translate-x-1/2 overflow-hidden pointer-events-none"
+                style={{ width: "11.5%", zIndex: 20 }}
                 animate={isUnwrapping ? { scaleY: 0, opacity: 0 } : { scaleY: 1, opacity: 1 }}
-                transition={{ duration: 0.95, delay: 0.42, ease: [0.22, 1, 0.36, 1] }}
-              />
-              {/* Horizontal ribbon */}
+                transition={{ duration: 1.4, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: WOVEN_V,
+                    boxShadow: "2px 0 12px rgba(164,121,75,0.3), -1px 0 6px rgba(164,121,75,0.18)",
+                  }}
+                />
+                <RibbonShimmer />
+              </motion.div>
+
+              {/* Horizontal ribbon + shimmer */}
               <motion.div
-                className="absolute inset-x-0 top-1/2 -translate-y-1/2 pointer-events-none"
-                style={{ height: "16.5%", background: WOVEN_H, boxShadow: "0 2px 10px rgba(0,0,0,0.24), 0 -1px 5px rgba(0,0,0,0.14)", zIndex: 20 }}
+                className="absolute inset-x-0 top-1/2 -translate-y-1/2 overflow-hidden pointer-events-none"
+                style={{ height: "16.5%", zIndex: 20 }}
                 animate={isUnwrapping ? { scaleX: 0, opacity: 0 } : { scaleX: 1, opacity: 1 }}
-                transition={{ duration: 0.95, delay: 0.62, ease: [0.22, 1, 0.36, 1] }}
-              />
+                transition={{ duration: 1.4, delay: 0.46, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: WOVEN_H,
+                    boxShadow: "0 2px 12px rgba(164,121,75,0.3), 0 -1px 6px rgba(164,121,75,0.18)",
+                  }}
+                />
+                <RibbonShimmer horizontal />
+              </motion.div>
             </motion.div>
 
-            {/* Bow — draggable, sits above lid */}
+            {/* Pulsing glow behind bow — draws attention while idle */}
+            <AnimatePresence>
+              {stage === "idle" && (
+                <motion.div
+                  key="bowglow"
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+                  style={{
+                    width: 96, height: 96,
+                    background: "radial-gradient(ellipse, rgba(200,150,30,0.32) 0%, transparent 70%)",
+                    zIndex: 35,
+                  }}
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  animate={{ opacity: [0.3, 0.8, 0.3], scale: [1, 1.6, 1] }}
+                  exit={{ opacity: 0, scale: 0.6, transition: { duration: 0.4 } }}
+                  transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+                />
+              )}
+            </AnimatePresence>
+
+            {/* Bow — draggable, with idle sway */}
             <motion.div
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
               style={{ zIndex: 40, touchAction: "none", cursor: stage === "idle" ? "grab" : "default" }}
@@ -193,15 +251,33 @@ export function UnwrappingExperience({
               dragElastic={0.88}
               dragMomentum={false}
               onDragEnd={handleDragEnd}
-              whileTap={stage === "idle" ? { scale: 0.93 } : {}}
+              whileTap={stage === "idle" ? { scale: 0.92 } : {}}
               animate={
                 isUnwrapping
-                  ? { x: bowDir.current.x * 320, y: bowDir.current.y * 320, scale: 0, rotate: 210, opacity: 0 }
+                  ? { x: bowDir.current.x * 420, y: bowDir.current.y * 420, scale: 0, rotate: 260, opacity: 0 }
                   : { x: 0, y: 0, scale: 1, rotate: 0, opacity: 1 }
               }
-              transition={isUnwrapping ? { duration: 0.72, ease: [0.36, 0, 0.66, -0.28] } : undefined}
+              transition={
+                isUnwrapping
+                  ? { type: "spring", stiffness: 85, damping: 10 }
+                  : undefined
+              }
             >
-              <GoldBow />
+              {/* Inner wrapper handles idle sway independently */}
+              <motion.div
+                animate={
+                  stage === "idle"
+                    ? { rotate: [-2, 2, -2], y: [0, -3, 0] }
+                    : { rotate: 0, y: 0 }
+                }
+                transition={
+                  stage === "idle"
+                    ? { duration: 4.0, repeat: Infinity, ease: "easeInOut" }
+                    : { duration: 0.3 }
+                }
+              >
+                <GoldBow />
+              </motion.div>
             </motion.div>
 
             {/* Particles */}
@@ -210,10 +286,15 @@ export function UnwrappingExperience({
                 <motion.div
                   key={p.id}
                   className="absolute rounded-full pointer-events-none"
-                  style={{ width: p.size, height: p.size, background: p.color, left: "50%", top: "44%", marginLeft: -(p.size / 2), marginTop: -(p.size / 2), zIndex: 50 }}
+                  style={{
+                    width: p.size, height: p.size, background: p.color,
+                    left: "50%", top: "44%",
+                    marginLeft: -(p.size / 2), marginTop: -(p.size / 2),
+                    zIndex: 50,
+                  }}
                   initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
                   animate={{ x: p.x, y: p.y, opacity: 0, scale: 0 }}
-                  transition={{ duration: 1.5, delay: p.delay, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 2.2, delay: p.delay, ease: [0.22, 1, 0.36, 1] }}
                 />
               ))}
             </AnimatePresence>
@@ -224,24 +305,26 @@ export function UnwrappingExperience({
                 <motion.div
                   key="bloom"
                   className="absolute inset-0 rounded-2xl pointer-events-none"
-                  style={{ background: "radial-gradient(ellipse 80% 72% at 50% 50%, rgba(246,196,83,0.34) 0%, transparent 72%)", zIndex: 45 }}
+                  style={{
+                    background: "radial-gradient(ellipse 80% 72% at 50% 50%, rgba(246,196,83,0.38) 0%, transparent 72%)",
+                    zIndex: 45,
+                  }}
                   initial={{ opacity: 0, scale: 0.4 }}
-                  animate={{ opacity: 1, scale: 1.35 }}
+                  animate={{ opacity: [0, 1, 0.38] }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 1.1, ease: "easeOut" }}
+                  transition={{ duration: 2.6, ease: "easeOut", times: [0, 0.2, 1] }}
                 />
               )}
             </AnimatePresence>
           </motion.div>
         )}
 
-        {/* ─── REAL GIFT CARD — appears directly, no placeholder ────── */}
+        {/* ─── REAL GIFT CARD ───────────────────────────────────────── */}
         {stage === "revealed" && (
           <motion.div
             key="card"
             className="w-full"
-            // Start faint and slightly below; vibrate then rise (via useEffect → cardControls)
-            initial={{ opacity: 0.45, y: 28, scale: 0.93, x: 0 }}
+            initial={{ opacity: 0.38, y: 50, scale: 0.88, x: 0 }}
             animate={cardControls}
           >
             {children}
@@ -250,7 +333,7 @@ export function UnwrappingExperience({
 
       </AnimatePresence>
 
-      {/* ─── Hint (replaces button) ────────────────────────────────── */}
+      {/* ─── Hint ─────────────────────────────────────────────────── */}
       <AnimatePresence>
         {stage === "idle" && (
           <motion.div
@@ -279,96 +362,112 @@ export function UnwrappingExperience({
   );
 }
 
-/* ─── Gold bow SVG — bianco + oro acceso, brillantina ────────────────── */
+/* ─── Ribbon shimmer — luce che scivola sul filo ─────────────────────── */
+function RibbonShimmer({ horizontal }: { horizontal?: boolean }) {
+  return (
+    <motion.div
+      className="absolute inset-0 pointer-events-none"
+      style={{
+        background: horizontal
+          ? "linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.72) 50%, transparent 70%)"
+          : "linear-gradient(180deg, transparent 30%, rgba(255,255,255,0.72) 50%, transparent 70%)",
+      }}
+      initial={horizontal ? { x: "-120%" } : { y: "-120%" }}
+      animate={horizontal ? { x: "120%" } : { y: "120%" }}
+      transition={{ duration: 3.0, repeat: Infinity, ease: "linear", repeatDelay: 2.0 }}
+    />
+  );
+}
+
+/* ─── GoldBow — fiocco naturale, asimmetrico, con creases ────────────── */
 function GoldBow() {
   return (
     <svg
-      width="160" height="112"
-      viewBox="0 0 160 112"
+      width="172" height="120"
+      viewBox="0 0 172 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ opacity: 0.92 }}
+      style={{ opacity: 0.90 }}
     >
       <defs>
-        {/* Oro caldo vero: #c8961e è "gold" percepito correttamente, non giallo.
-            Highlights in bianco puro + oro chiaro per l'effetto sbrillucicante. */}
+        {/* Oro caldo — highlights bianchi per effetto sbrillucicante */}
         <linearGradient id="gL" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#ffffff" />
-          <stop offset="18%"  stopColor="#f0d060" />
-          <stop offset="42%"  stopColor="#c8961e" />
-          <stop offset="60%"  stopColor="#f0d060" />
-          <stop offset="100%" stopColor="#ffffff" />
+          <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.92" />
+          <stop offset="18%"  stopColor="#f4e080" />
+          <stop offset="44%"  stopColor="#c8961e" />
+          <stop offset="68%"  stopColor="#f0d060" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0.88" />
         </linearGradient>
         <linearGradient id="gR" x1="1" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#ffffff" />
-          <stop offset="18%"  stopColor="#f0d060" />
-          <stop offset="42%"  stopColor="#c8961e" />
-          <stop offset="60%"  stopColor="#f0d060" />
-          <stop offset="100%" stopColor="#ffffff" />
+          <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.92" />
+          <stop offset="18%"  stopColor="#f4e080" />
+          <stop offset="44%"  stopColor="#c8961e" />
+          <stop offset="66%"  stopColor="#f0d060" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0.88" />
         </linearGradient>
         <linearGradient id="gK" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#f8e888" />
-          <stop offset="45%"  stopColor="#c8961e" />
-          <stop offset="100%" stopColor="#a07818" />
+          <stop offset="0%"   stopColor="#fde9a8" />
+          <stop offset="40%"  stopColor="#c8961e" />
+          <stop offset="100%" stopColor="#9a7018" />
         </linearGradient>
         <linearGradient id="gT" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#ffffff" />
-          <stop offset="30%"  stopColor="#f0d060" />
-          <stop offset="100%" stopColor="#c8961e" />
+          <stop offset="0%"   stopColor="#f4e080" />
+          <stop offset="50%"  stopColor="#c8961e" />
+          <stop offset="100%" stopColor="#a07818" stopOpacity="0.60" />
         </linearGradient>
-        <filter id="s" x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="1" stdDeviation="2.5" floodColor="#7a5c10" floodOpacity="0.35" />
+        <filter id="s" x="-35%" y="-35%" width="170%" height="170%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3.5" floodColor="#7a5c10" floodOpacity="0.26" />
         </filter>
         <filter id="gl">
-          <feGaussianBlur stdDeviation="1.8" result="b" />
+          <feGaussianBlur stdDeviation="2.2" result="b" />
           <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
       </defs>
 
-      {/* ── Loop sinistro ── */}
+      {/* Loop sinistro — leggermente più grande, forma organica */}
       <path
-        d="M 76 62 C 62 42 32 12 10 24 C -2 31 1 52 20 58 C 38 64 68 65 76 62 Z"
+        d="M 82 68 C 72 52 50 20 22 23 C 5 26 -3 48 12 58 C 28 68 64 72 82 68 Z"
         fill="url(#gL)" filter="url(#s)"
       />
-      {/* Speculare bianco sul loop */}
-      <path
-        d="M 74 58 C 62 43 40 20 22 27"
-        stroke="rgba(255,255,255,0.75)" strokeWidth="6" strokeLinecap="round"
-      />
+      {/* Crease principale */}
+      <path d="M 80 63 C 67 48 44 26 24 31" stroke="rgba(255,255,255,0.70)" strokeWidth="6" strokeLinecap="round" />
+      {/* Crease secondaria — profondità */}
+      <path d="M 74 57 C 62 45 46 34 32 37" stroke="rgba(255,255,255,0.28)" strokeWidth="2.5" strokeLinecap="round" />
 
-      {/* ── Loop destro ── */}
+      {/* Loop destro — leggermente asimmetrico */}
       <path
-        d="M 84 62 C 98 42 128 12 150 24 C 162 31 159 52 140 58 C 122 64 92 65 84 62 Z"
+        d="M 90 68 C 100 52 120 22 146 26 C 163 29 167 50 153 59 C 138 68 106 71 90 68 Z"
         fill="url(#gR)" filter="url(#s)"
       />
-      {/* Speculare bianco sul loop */}
-      <path
-        d="M 86 58 C 98 43 120 20 138 27"
-        stroke="rgba(255,255,255,0.75)" strokeWidth="6" strokeLinecap="round"
-      />
+      <path d="M 92 63 C 105 48 128 28 148 34" stroke="rgba(255,255,255,0.70)" strokeWidth="6" strokeLinecap="round" />
+      <path d="M 98 57 C 110 46 130 36 142 40" stroke="rgba(255,255,255,0.28)" strokeWidth="2.5" strokeLinecap="round" />
 
-      {/* ── Coda sinistra ── */}
-      <path d="M 70 72 C 54 86 38 98 22 108" stroke="url(#gT)" strokeWidth="15" strokeLinecap="round" filter="url(#s)" />
-      <path d="M 70 72 C 54 86 38 98 22 108" stroke="rgba(255,255,255,0.55)" strokeWidth="5" strokeLinecap="round" />
+      {/* Coda sinistra — curva naturale */}
+      <path d="M 78 78 C 68 92 52 103 34 116" stroke="url(#gT)" strokeWidth="15" strokeLinecap="round" filter="url(#s)" />
+      <path d="M 78 78 C 68 92 52 103 34 116" stroke="rgba(255,255,255,0.55)" strokeWidth="4.5" strokeLinecap="round" />
 
-      {/* ── Coda destra ── */}
-      <path d="M 90 72 C 106 86 122 98 138 108" stroke="url(#gT)" strokeWidth="15" strokeLinecap="round" filter="url(#s)" />
-      <path d="M 90 72 C 106 86 122 98 138 108" stroke="rgba(255,255,255,0.55)" strokeWidth="5" strokeLinecap="round" />
+      {/* Coda destra — angolo diverso per naturalezza */}
+      <path d="M 94 78 C 108 90 124 100 142 112" stroke="url(#gT)" strokeWidth="15" strokeLinecap="round" filter="url(#s)" />
+      <path d="M 94 78 C 108 90 124 100 142 112" stroke="rgba(255,255,255,0.55)" strokeWidth="4.5" strokeLinecap="round" />
 
-      {/* ── Nodo centrale ── */}
-      <ellipse cx="80" cy="62" rx="17" ry="13" fill="url(#gK)" filter="url(#s)" />
-      <ellipse cx="80" cy="57" rx="11" ry="7"  fill="rgba(255,255,255,0.65)" />
+      {/* Nodo centrale — prominente */}
+      <ellipse cx="86" cy="68" rx="17" ry="12.5" fill="url(#gK)" filter="url(#s)" />
+      <ellipse cx="86" cy="63" rx="11" ry="7" fill="rgba(255,255,255,0.62)" />
+      <ellipse cx="83" cy="61" rx="4.5" ry="2.8" fill="rgba(255,255,255,0.90)" />
 
-      {/* ── Sparkle — puntini bianchi brillantina ── */}
-      <circle cx="28"  cy="38" r="2.5" fill="#ffffff" opacity="0.95" filter="url(#gl)" />
-      <circle cx="132" cy="36" r="2.2" fill="#ffffff" opacity="0.90" filter="url(#gl)" />
-      <circle cx="52"  cy="20" r="1.8" fill="#ffffff" opacity="0.85" filter="url(#gl)" />
-      <circle cx="108" cy="20" r="1.8" fill="#ffffff" opacity="0.85" filter="url(#gl)" />
-      <circle cx="80"  cy="40" r="1.6" fill="#ffffff" opacity="0.80" filter="url(#gl)" />
-      <circle cx="40"  cy="56" r="1.5" fill="#ffffff" opacity="0.75" />
-      <circle cx="120" cy="55" r="1.5" fill="#ffffff" opacity="0.75" />
-      <circle cx="64"  cy="78" r="1.4" fill="#ffffff" opacity="0.70" />
-      <circle cx="96"  cy="78" r="1.4" fill="#ffffff" opacity="0.70" />
+      {/* Sparkles — brillantina */}
+      <circle cx="22"  cy="44" r="3.0" fill="#ffffff" opacity="0.96" filter="url(#gl)" />
+      <circle cx="150" cy="42" r="2.5" fill="#ffffff" opacity="0.92" filter="url(#gl)" />
+      <circle cx="44"  cy="18" r="2.2" fill="#ffffff" opacity="0.87" filter="url(#gl)" />
+      <circle cx="118" cy="20" r="2.0" fill="#ffffff" opacity="0.87" filter="url(#gl)" />
+      <circle cx="86"  cy="40" r="1.9" fill="#ffffff" opacity="0.83" filter="url(#gl)" />
+      <circle cx="34"  cy="62" r="1.7" fill="#ffffff" opacity="0.76" />
+      <circle cx="134" cy="60" r="1.7" fill="#ffffff" opacity="0.76" />
+      <circle cx="60"  cy="84" r="1.5" fill="#ffffff" opacity="0.68" />
+      <circle cx="110" cy="82" r="1.5" fill="#ffffff" opacity="0.68" />
+      <circle cx="12"  cy="52" r="1.3" fill="#f0d060" opacity="0.82" filter="url(#gl)" />
+      <circle cx="158" cy="50" r="1.3" fill="#f0d060" opacity="0.82" filter="url(#gl)" />
+      <circle cx="86"  cy="18" r="1.2" fill="#ffffff" opacity="0.72" filter="url(#gl)" />
     </svg>
   );
 }
