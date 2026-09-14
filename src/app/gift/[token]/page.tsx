@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { UnwrappingExperience } from "@/components/gift/UnwrappingExperience";
 import { VirtualGiftCard } from "@/components/gift/VirtualGiftCard";
+import { CardScene } from "@/components/gift/CardScene";
 
 export const runtime = "nodejs";
 
@@ -45,9 +46,14 @@ export default async function GiftPage({ params }: GiftPageProps) {
 
       <div className="w-full max-w-md">
         {giftCard.isOpened ? (
-          card
+          // Card already opened: full GSAP hero entrance + idle + parallax
+          <CardScene>{card}</CardScene>
         ) : (
-          <UnwrappingExperience secretToken={giftCard.secretToken}>{card}</UnwrappingExperience>
+          // Not yet opened: UnwrappingExperience handles the dramatic entrance;
+          // CardScene provides idle float + parallax + shimmer after reveal.
+          <UnwrappingExperience secretToken={giftCard.secretToken}>
+            <CardScene skipEntrance>{card}</CardScene>
+          </UnwrappingExperience>
         )}
       </div>
     </div>
