@@ -163,6 +163,66 @@ function ServiziSelect({
   );
 }
 
+/* ─── Date picker premium ────────────────────────────────────────────── */
+const MESI = [
+  "Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno",
+  "Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre",
+];
+const GIORNI = Array.from({ length: 31 }, (_, i) => i + 1);
+const ANNI   = Array.from({ length: 90  }, (_, i) => 2012 - i);
+
+function Sel({
+  value, onChange, placeholder, children,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  children: React.ReactNode;
+}) {
+  const empty = value === "";
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full rounded-xl border border-sand-dark bg-white px-3.5 py-3 pr-8 text-sm outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
+        style={{ WebkitAppearance: "none", appearance: "none", color: empty ? "#a3a3a3" : "var(--color-ink)" }}
+      >
+        <option value="" disabled>{placeholder}</option>
+        {children}
+      </select>
+      <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+    </div>
+  );
+}
+
+function DatePickerNascita({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [g, setG] = useState(value ? value.split("-")[2] ?? "" : "");
+  const [m, setM] = useState(value ? value.split("-")[1] ?? "" : "");
+  const [a, setA] = useState(value ? value.split("-")[0] ?? "" : "");
+
+  function emit(giorno: string, mese: string, anno: string) {
+    if (giorno && mese && anno) onChange(`${anno}-${mese}-${giorno.padStart(2, "0")}`);
+    else onChange("");
+  }
+
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      <Sel value={g} placeholder="Giorno" onChange={v => { setG(v); emit(v, m, a); }}>
+        {GIORNI.map(n => <option key={n} value={String(n).padStart(2, "0")}>{n}</option>)}
+      </Sel>
+      <Sel value={m} placeholder="Mese" onChange={v => { setM(v); emit(g, v, a); }}>
+        {MESI.map((nome, i) => (
+          <option key={i} value={String(i + 1).padStart(2, "0")}>{nome}</option>
+        ))}
+      </Sel>
+      <Sel value={a} placeholder="Anno" onChange={v => { setA(v); emit(g, m, v); }}>
+        {ANNI.map(n => <option key={n} value={String(n)}>{n}</option>)}
+      </Sel>
+    </div>
+  );
+}
+
 /* ─── Pagina principale ───────────────────────────────────────────────── */
 type Stage = "form" | "loading" | "revealed";
 
@@ -227,7 +287,7 @@ export function GiveawayForm() {
                 <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">Nome</label>
                 <input
                   type="text" value={nome} onChange={e => setNome(e.target.value)}
-                  placeholder="Nome" required
+                  placeholder="Nome" required autoComplete="given-name"
                   className="rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
                 />
               </div>
@@ -235,7 +295,7 @@ export function GiveawayForm() {
                 <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">Cognome</label>
                 <input
                   type="text" value={cognome} onChange={e => setCognome(e.target.value)}
-                  placeholder="Cognome" required
+                  placeholder="Cognome" required autoComplete="family-name"
                   className="rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
                 />
               </div>
@@ -244,10 +304,7 @@ export function GiveawayForm() {
             {/* Data di nascita */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">Data di nascita</label>
-              <input
-                type="date" value={dataNascita} onChange={e => setDataNascita(e.target.value)} required
-                className="rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
-              />
+              <DatePickerNascita value={dataNascita} onChange={setDataNascita} />
             </div>
 
             {/* Trattamenti preferiti */}
@@ -275,20 +332,6 @@ export function GiveawayForm() {
             <div className="flex flex-col gap-2.5 rounded-xl border border-sand-dark bg-paper-muted px-4 py-3.5">
               <div className="flex items-start gap-3">
                 <input
-                  id="privacy" type="checkbox" required checked={privacy}
-                  onChange={e => setPrivacy(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded"
-                  style={{ accentColor: "var(--color-gold)" }}
-                />
-                <label htmlFor="privacy" className="cursor-pointer text-xs leading-relaxed text-ink-soft">
-                  Ho letto e accetto l&apos;<span className="font-medium text-ink">informativa sul trattamento dei dati personali</span>.{" "}
-                  I miei dati saranno trattati da MAD Vigevano (Via Cairoli 6, Vigevano PV) esclusivamente per gestire questa richiesta.{" "}
-                  <span className="text-[0.65rem] text-neutral-400">(obbligatorio)</span>
-                </label>
-              </div>
-              <div className="border-t border-sand" />
-              <div className="flex items-start gap-3">
-                <input
                   id="marketing" type="checkbox" checked={marketing}
                   onChange={e => setMarketing(e.target.checked)}
                   className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded"
@@ -298,6 +341,20 @@ export function GiveawayForm() {
                   Acconsento a ricevere offerte riservate, novità e promozioni da MAD Vigevano via WhatsApp o email.
                   Posso revocare il consenso in qualsiasi momento.{" "}
                   <span className="text-[0.65rem] text-neutral-400">(facoltativo)</span>
+                </label>
+              </div>
+              <div className="border-t border-sand" />
+              <div className="flex items-start gap-3">
+                <input
+                  id="privacy" type="checkbox" required checked={privacy}
+                  onChange={e => setPrivacy(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded"
+                  style={{ accentColor: "var(--color-gold)" }}
+                />
+                <label htmlFor="privacy" className="cursor-pointer text-xs leading-relaxed text-ink-soft">
+                  Ho letto e accetto l&apos;<span className="font-medium text-ink">informativa sul trattamento dei dati personali</span>.{" "}
+                  I miei dati saranno trattati da MAD Vigevano (Via Cairoli 6, Vigevano PV) esclusivamente per gestire questa richiesta.{" "}
+                  <span className="text-[0.65rem] text-neutral-400">(obbligatorio)</span>
                 </label>
               </div>
             </div>
