@@ -60,7 +60,7 @@ export function UnwrappingExperience({
   secretToken,
   children,
 }: {
-  secretToken: string;
+  secretToken?: string;
   children: ReactNode;
 }) {
   const [stage, setStage]  = useState<Stage>("idle");
@@ -76,7 +76,7 @@ export function UnwrappingExperience({
     const len = Math.sqrt(dx ** 2 + dy ** 2) || 1;
     setBowDir({ x: dx / len, y: dy / len });
 
-    markGiftCardAsOpened(secretToken).catch(console.error);
+    if (secretToken) markGiftCardAsOpened(secretToken).catch(console.error);
     setStage("unwrapping");
     setTimeout(() => setStage("opening"),  T_OPENING);
     setTimeout(() => setStage("revealed"), T_REVEALED);

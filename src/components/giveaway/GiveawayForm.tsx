@@ -2,9 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Check, X } from "lucide-react";
+import { Sparkles, ChevronDown, Check, X } from "lucide-react";
 import { VirtualGiftCard } from "@/components/gift/VirtualGiftCard";
 import { CardScene } from "@/components/gift/CardScene";
+import { UnwrappingExperience } from "@/components/gift/UnwrappingExperience";
+import { GiveawayCountdown } from "./GiveawayCountdown";
 
 /* ─── Servizi reali MAD Vigevano (da listino-prezzi) ─────────────────── */
 const SERVIZI_GRUPPI: { label: string; items: string[] }[] = [
@@ -53,23 +55,6 @@ const SERVIZI_GRUPPI: { label: string; items: string[] }[] = [
   },
 ];
 
-
-/* ─── Confetti ────────────────────────────────────────────────────────── */
-const CONFETTI = Array.from({ length: 52 }, (_, i) => {
-  const angle = (i / 52) * 360 + (i % 7) * 14;
-  const r = 70 + (i % 11) * 26;
-  return {
-    id: i,
-    x: Math.cos((angle * Math.PI) / 180) * r,
-    y: Math.sin((angle * Math.PI) / 180) * r - 50,
-    rotate: (i % 2 === 0 ? 1 : -1) * (100 + (i % 6) * 55),
-    color: ["#f6c453", "#fde9a8", "#c3a06a", "#a4794b", "#e8d48a", "#ffffff", "#f0d060"][i % 7],
-    w: 7 + (i % 4) * 2.5,
-    h: 3.5 + (i % 3),
-    delay: (i % 16) * 0.032,
-  };
-});
-
 /* ─── Multi-select dropdown ───────────────────────────────────────────── */
 function ServiziSelect({
   selected,
@@ -99,7 +84,6 @@ function ServiziSelect({
 
   return (
     <div ref={ref} className="relative">
-      {/* Trigger */}
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
@@ -107,9 +91,7 @@ function ServiziSelect({
       >
         <div className="flex flex-1 flex-wrap gap-1.5 py-0.5">
           {selected.length === 0 ? (
-            <span className="text-sm text-neutral-400 leading-relaxed">
-              Seleziona uno o più servizi…
-            </span>
+            <span className="text-sm text-neutral-400 leading-relaxed">Seleziona uno o più servizi…</span>
           ) : (
             selected.map(s => (
               <span
@@ -132,7 +114,6 @@ function ServiziSelect({
         />
       </button>
 
-      {/* Dropdown panel */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -144,7 +125,6 @@ function ServiziSelect({
           >
             {SERVIZI_GRUPPI.map((gruppo, gi) => (
               <div key={gruppo.label}>
-                {/* Intestazione categoria */}
                 <div
                   className="sticky top-0 px-4 py-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.18em]"
                   style={{
@@ -155,10 +135,8 @@ function ServiziSelect({
                 >
                   {gruppo.label}
                 </div>
-                {/* Voci */}
                 {gruppo.items.map((s, i) => {
                   const active = selected.includes(s);
-                  const isLast = i === gruppo.items.length - 1;
                   return (
                     <button
                       key={s}
@@ -166,7 +144,7 @@ function ServiziSelect({
                       onClick={() => toggle(s)}
                       className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition hover:bg-paper-muted"
                       style={{
-                        borderBottom: !isLast ? "1px solid var(--color-sand)" : undefined,
+                        borderBottom: i < gruppo.items.length - 1 ? "1px solid var(--color-sand)" : undefined,
                         color: active ? "var(--color-gold)" : "var(--color-ink)",
                         fontWeight: active ? 500 : 400,
                       }}
@@ -185,7 +163,7 @@ function ServiziSelect({
   );
 }
 
-/* ─── Main form ───────────────────────────────────────────────────────── */
+/* ─── Pagina principale ───────────────────────────────────────────────── */
 type Stage = "form" | "loading" | "revealed";
 
 export function GiveawayForm() {
@@ -214,204 +192,172 @@ export function GiveawayForm() {
   return (
     <AnimatePresence mode="wait">
 
-      {/* ─── Form ─────────────────────────────────────────────────── */}
-      {(stage === "form" || stage === "loading") && (
-        <motion.form
-          key="form"
-          onSubmit={handleSubmit}
-          className="flex w-full flex-col gap-5"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.42 }}
+      {/* ─── FORM ─────────────────────────────────────────────────── */}
+      {stage !== "revealed" && (
+        <motion.div
+          key="form-page"
+          className="flex min-h-screen flex-col items-center bg-paper px-6 py-14 sm:py-20"
+          exit={{ opacity: 0, transition: { duration: 0.28 } }}
         >
-          {/* Nome + Cognome */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Hero */}
+          <div className="mb-10 flex w-full max-w-md flex-col gap-3">
+            <span
+              className="w-fit rounded-full px-3 py-1 text-[0.62rem] font-medium uppercase tracking-[0.22em]"
+              style={{ background: "rgba(164,121,75,0.09)", color: "var(--color-gold)" }}
+            >
+              Riservato ai nostri clienti
+            </span>
+            <h1 className="font-display text-[1.75rem] font-semibold leading-snug text-ink sm:text-3xl">
+              Ci conosci già.<br />
+              Adesso vogliamo conoscerti meglio.
+            </h1>
+            <p className="text-sm leading-relaxed text-ink-soft">
+              Due minuti per dirci cosa ami di più — così ogni tua visita
+              può essere ancora più su misura. In cambio, tieni questo.
+            </p>
+            <GiveawayCountdown />
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="flex w-full max-w-md flex-col gap-5">
+
+            {/* Nome + Cognome */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">Nome</label>
+                <input
+                  type="text" value={nome} onChange={e => setNome(e.target.value)}
+                  placeholder="Nome" required
+                  className="rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">Cognome</label>
+                <input
+                  type="text" value={cognome} onChange={e => setCognome(e.target.value)}
+                  placeholder="Cognome" required
+                  className="rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
+                />
+              </div>
+            </div>
+
+            {/* Data di nascita */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">Data di nascita</label>
+              <input
+                type="date" value={dataNascita} onChange={e => setDataNascita(e.target.value)} required
+                className="rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
+              />
+            </div>
+
+            {/* Trattamenti preferiti */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">
-                Nome
+                Quali sono i tuoi trattamenti preferiti?
               </label>
-              <input
-                type="text"
-                value={nome}
-                onChange={e => setNome(e.target.value)}
-                placeholder="Nome"
-                required
-                className="rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
-              />
+              <ServiziSelect selected={servizi} onChange={setServizi} />
             </div>
+
+            {/* Nota libera */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">
-                Cognome
+                Una domanda, una richiesta, un feedback
               </label>
-              <input
-                type="text"
-                value={cognome}
-                onChange={e => setCognome(e.target.value)}
-                placeholder="Cognome"
-                required
-                className="rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
+              <textarea
+                value={nota} onChange={e => setNota(e.target.value)}
+                placeholder="Scrivici qualcosa — ci fa piacere leggerti."
+                rows={3}
+                className="resize-none rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
               />
             </div>
-          </div>
 
-          {/* Data di nascita */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">
-              Data di nascita
-            </label>
-            <input
-              type="date"
-              value={dataNascita}
-              onChange={e => setDataNascita(e.target.value)}
-              required
-              className="rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
-            />
-          </div>
-
-          {/* Servizi */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">
-              Quali sono i tuoi trattamenti preferiti?
-            </label>
-            <ServiziSelect selected={servizi} onChange={setServizi} />
-          </div>
-
-          {/* Nota libera */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">
-              Una domanda, una richiesta, un feedback
-            </label>
-            <textarea
-              value={nota}
-              onChange={e => setNota(e.target.value)}
-              placeholder="Scrivici qualcosa — ci fa piacere leggerti."
-              rows={3}
-              className="resize-none rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
-            />
-          </div>
-
-          {/* Consensi */}
-          <div className="flex flex-col gap-2.5 rounded-xl border border-sand-dark bg-paper-muted px-4 py-3.5">
-            {/* Privacy — obbligatorio */}
-            <div className="flex items-start gap-3">
-              <input
-                id="privacy"
-                type="checkbox"
-                required
-                checked={privacy}
-                onChange={e => setPrivacy(e.target.checked)}
-                className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded"
-                style={{ accentColor: "var(--color-gold)" }}
-              />
-              <label htmlFor="privacy" className="cursor-pointer text-xs leading-relaxed text-ink-soft">
-                Ho letto e accetto l&apos;
-                <span className="font-medium text-ink">informativa sul trattamento dei dati personali</span>.{" "}
-                I miei dati saranno trattati da MAD Vigevano (Via Cairoli 6, Vigevano PV)
-                esclusivamente per gestire questa richiesta.{" "}
-                <span className="text-[0.65rem] text-neutral-400">(obbligatorio)</span>
-              </label>
+            {/* Consensi */}
+            <div className="flex flex-col gap-2.5 rounded-xl border border-sand-dark bg-paper-muted px-4 py-3.5">
+              <div className="flex items-start gap-3">
+                <input
+                  id="privacy" type="checkbox" required checked={privacy}
+                  onChange={e => setPrivacy(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded"
+                  style={{ accentColor: "var(--color-gold)" }}
+                />
+                <label htmlFor="privacy" className="cursor-pointer text-xs leading-relaxed text-ink-soft">
+                  Ho letto e accetto l&apos;<span className="font-medium text-ink">informativa sul trattamento dei dati personali</span>.{" "}
+                  I miei dati saranno trattati da MAD Vigevano (Via Cairoli 6, Vigevano PV) esclusivamente per gestire questa richiesta.{" "}
+                  <span className="text-[0.65rem] text-neutral-400">(obbligatorio)</span>
+                </label>
+              </div>
+              <div className="border-t border-sand" />
+              <div className="flex items-start gap-3">
+                <input
+                  id="marketing" type="checkbox" checked={marketing}
+                  onChange={e => setMarketing(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded"
+                  style={{ accentColor: "var(--color-gold)" }}
+                />
+                <label htmlFor="marketing" className="cursor-pointer text-xs leading-relaxed text-ink-soft">
+                  Acconsento a ricevere offerte riservate, novità e promozioni da MAD Vigevano via WhatsApp o email.
+                  Posso revocare il consenso in qualsiasi momento.{" "}
+                  <span className="text-[0.65rem] text-neutral-400">(facoltativo)</span>
+                </label>
+              </div>
             </div>
 
-            <div className="border-t border-sand" />
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={!isValid || stage === "loading"}
+              className="flex items-center justify-center gap-2 rounded-xl bg-ink py-3.5 text-sm font-semibold text-paper transition-all hover:bg-ink/85 active:scale-[0.98] disabled:opacity-35"
+            >
+              {stage === "loading" ? (
+                <>
+                  <span className="h-3.5 w-3.5 rounded-full border-2 border-paper/30 border-t-paper animate-spin" />
+                  Un attimo…
+                </>
+              ) : (
+                "Scopri il tuo regalo →"
+              )}
+            </button>
 
-            {/* Marketing — opzionale */}
-            <div className="flex items-start gap-3">
-              <input
-                id="marketing"
-                type="checkbox"
-                checked={marketing}
-                onChange={e => setMarketing(e.target.checked)}
-                className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded"
-                style={{ accentColor: "var(--color-gold)" }}
-              />
-              <label htmlFor="marketing" className="cursor-pointer text-xs leading-relaxed text-ink-soft">
-                Acconsento a ricevere offerte riservate, novità e promozioni da MAD Vigevano
-                via WhatsApp o email. Posso revocare il consenso in qualsiasi momento.{" "}
-                <span className="text-[0.65rem] text-neutral-400">(facoltativo)</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={!isValid || stage === "loading"}
-            className="flex items-center justify-center gap-2 rounded-xl bg-ink py-3.5 text-sm font-semibold text-paper transition-all hover:bg-ink/85 active:scale-[0.98] disabled:opacity-35"
-          >
-            {stage === "loading" ? (
-              <>
-                <span className="h-3.5 w-3.5 rounded-full border-2 border-paper/30 border-t-paper animate-spin" />
-                Un attimo…
-              </>
-            ) : (
-              "Scopri il tuo regalo →"
-            )}
-          </button>
-
-          {/* Note legali */}
-          <p className="text-center text-[0.62rem] leading-relaxed text-neutral-400">
-            Titolare del trattamento: MAD Vigevano · Via Cairoli 6, 27029 Vigevano (PV) · Tel.&nbsp;0381&nbsp;644268.
-            Hai diritto di accedere, rettificare o cancellare i tuoi dati in qualsiasi momento
-            contattandoci al numero sopra. Il consenso marketing può essere revocato in ogni momento.
-          </p>
-        </motion.form>
+            {/* Note legali */}
+            <p className="text-center text-[0.62rem] leading-relaxed text-neutral-400">
+              Titolare del trattamento: MAD Vigevano · Via Cairoli 6, 27029 Vigevano (PV) · Tel.&nbsp;0381&nbsp;644268.
+              Hai diritto di accedere, rettificare o cancellare i tuoi dati contattandoci al numero sopra.
+            </p>
+          </form>
+        </motion.div>
       )}
 
-      {/* ─── Reveal ───────────────────────────────────────────────── */}
+      {/* ─── UNBOXING — identico alla pagina regalo ───────────────── */}
       {stage === "revealed" && (
         <motion.div
-          key="revealed"
-          className="relative flex w-full flex-col items-center gap-6"
+          key="gift-page"
+          className="flex min-h-screen flex-col items-center bg-paper px-6 py-12 sm:py-16"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.35 }}
+          transition={{ duration: 0.4 }}
         >
-          {/* Confetti */}
-          <div className="pointer-events-none absolute left-1/2 top-20 -translate-x-1/2">
-            {CONFETTI.map(p => (
-              <motion.div
-                key={p.id}
-                className="absolute rounded-sm"
-                style={{ width: p.w, height: p.h, background: p.color }}
-                initial={{ x: 0, y: 0, opacity: 1, rotate: 0, scale: 1 }}
-                animate={{ x: p.x, y: p.y, opacity: 0, rotate: p.rotate, scale: 0.3 }}
-                transition={{ duration: 1.9, delay: p.delay, ease: [0.22, 1, 0.36, 1] }}
-              />
-            ))}
+          <div className="mb-6 flex flex-col items-center gap-2 text-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-gold-soft/50 bg-gold/5 px-4 py-1 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-gold">
+              <Sparkles className="h-3 w-3" />
+              Gift Card
+            </span>
+            <p className="font-display text-2xl font-semibold text-ink">MAD Vigevano</p>
           </div>
 
-          {/* Copy */}
-          <motion.div
-            className="text-center"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.2 }}
-          >
-            <p className="font-display text-3xl font-semibold text-ink sm:text-4xl">Eccolo. È tuo.</p>
-            <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-              Una Gift Card da <span className="font-semibold text-ink">€25</span> da usare quando vuoi da MAD Vigevano.
-            </p>
-          </motion.div>
-
-          {/* Card */}
-          <motion.div
-            className="w-full"
-            initial={{ opacity: 0, y: 32, scale: 0.93 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 1.25, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <CardScene>
-              <VirtualGiftCard
-                amount={25}
-                recipientName={`${nome} ${cognome}`.trim()}
-                buyerFullName="MAD Vigevano"
-                customMessage="Ti aspettiamo in salone. Sarai contattato a breve."
-                cardCode="MAD-GIVE-AWAY"
-                expiresAt={expiresAt}
-              />
-            </CardScene>
-          </motion.div>
+          <div className="w-full max-w-md">
+            <UnwrappingExperience>
+              <CardScene skipEntrance>
+                <VirtualGiftCard
+                  amount={25}
+                  recipientName={`${nome} ${cognome}`.trim()}
+                  buyerFullName="MAD Vigevano"
+                  customMessage="Sarai contattato a breve per ritirare il tuo regalo."
+                  cardCode="MAD-GIVE-AWAY"
+                  expiresAt={expiresAt}
+                />
+              </CardScene>
+            </UnwrappingExperience>
+          </div>
         </motion.div>
       )}
 
