@@ -284,22 +284,10 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
     <div
       className="relative rounded-3xl"
       style={{
-        background: "radial-gradient(ellipse 110% 90% at 50% 32%, #1e2030 0%, #0f1018 52%, #080910 100%)",
         padding: "20px 16px 44px",
         overflow: "hidden",
       }}
     >
-      {/* Key-light halo — warm amber pool behind card, simulating a focused
-          overhead source. The beam sweeps across the card surface are
-          specular reflections of this same light. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: "radial-gradient(ellipse 72% 52% at 50% 36%, rgba(178,136,55,0.20) 0%, rgba(140,106,40,0.08) 44%, transparent 68%)",
-          filter: "blur(36px)",
-        }}
-      />
 
       <div ref={sceneRef} className="relative" style={{ perspective: "600px" }}>
 
