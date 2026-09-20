@@ -6,17 +6,53 @@ import { ChevronDown, Check, X } from "lucide-react";
 import { VirtualGiftCard } from "@/components/gift/VirtualGiftCard";
 import { CardScene } from "@/components/gift/CardScene";
 
-/* ─── Servizi reali MAD Vigevano ──────────────────────────────────────── */
-const SERVIZI = [
-  "Taglio sartoriale",
-  "Piega & Styling",
-  "Colorazioni organiche",
-  "Airtouch & Balayage",
-  "Trattamenti curativi",
-  "OXY Hair Spa",
-  "Preparazione sposa",
-  "Preparazione shooting",
+/* ─── Servizi reali MAD Vigevano (da listino-prezzi) ─────────────────── */
+const SERVIZI_GRUPPI: { label: string; items: string[] }[] = [
+  {
+    label: "Taglio",
+    items: ["Taglio donna", "Taglio uomo"],
+  },
+  {
+    label: "Piega & Styling",
+    items: ["Piega capelli corti", "Piega capelli lunghi", "Styling"],
+  },
+  {
+    label: "Colorazioni",
+    items: [
+      "Colore organica",
+      "Colore organica + lunghezze",
+      "Gloss color",
+      "Decolorazione",
+    ],
+  },
+  {
+    label: "Schiariture",
+    items: ["Balayage", "Bleach No Bleach", "Airtouch / Hair Touch"],
+  },
+  {
+    label: "Trattamenti",
+    items: [
+      "Ristrutturazione profonda",
+      "Hair Filler",
+      "Detox",
+      "Ossigenoterapia",
+      "Ozonoterapia",
+      "OXY Hair Spa",
+      "Nanoplastia",
+      "Permanente",
+    ],
+  },
+  {
+    label: "Eventi & Shooting",
+    items: [
+      "Preparazione sposa",
+      "Preparazione shooting",
+      "Hair Styling & Art Direction",
+      "Fashion Show & Events",
+    ],
+  },
 ];
+
 
 /* ─── Confetti ────────────────────────────────────────────────────────── */
 const CONFETTI = Array.from({ length: 52 }, (_, i) => {
@@ -100,31 +136,48 @@ function ServiziSelect({
       <AnimatePresence>
         {open && (
           <motion.div
-            className="absolute left-0 right-0 top-full z-50 mt-1.5 overflow-hidden rounded-xl border border-sand-dark bg-white shadow-lg"
+            className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-72 overflow-y-auto overscroll-contain rounded-xl border border-sand-dark bg-white shadow-lg"
             initial={{ opacity: 0, y: -6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
           >
-            {SERVIZI.map((s, i) => {
-              const active = selected.includes(s);
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => toggle(s)}
-                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm transition hover:bg-paper-muted"
+            {SERVIZI_GRUPPI.map((gruppo, gi) => (
+              <div key={gruppo.label}>
+                {/* Intestazione categoria */}
+                <div
+                  className="sticky top-0 px-4 py-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.18em]"
                   style={{
-                    borderTop: i > 0 ? "1px solid var(--color-sand)" : undefined,
-                    color: active ? "var(--color-gold)" : "var(--color-ink)",
-                    fontWeight: active ? 500 : 400,
+                    background: "var(--color-paper-muted)",
+                    color: "var(--color-ink-soft)",
+                    borderTop: gi > 0 ? "1px solid var(--color-sand)" : undefined,
                   }}
                 >
-                  {s}
-                  {active && <Check size={14} className="shrink-0" style={{ color: "var(--color-gold)" }} />}
-                </button>
-              );
-            })}
+                  {gruppo.label}
+                </div>
+                {/* Voci */}
+                {gruppo.items.map((s, i) => {
+                  const active = selected.includes(s);
+                  const isLast = i === gruppo.items.length - 1;
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => toggle(s)}
+                      className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition hover:bg-paper-muted"
+                      style={{
+                        borderBottom: !isLast ? "1px solid var(--color-sand)" : undefined,
+                        color: active ? "var(--color-gold)" : "var(--color-ink)",
+                        fontWeight: active ? 500 : 400,
+                      }}
+                    >
+                      {s}
+                      {active && <Check size={14} className="shrink-0" style={{ color: "var(--color-gold)" }} />}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
           </motion.div>
         )}
       </AnimatePresence>
