@@ -345,7 +345,7 @@ export function GiveawayForm() {
           </div>
 
           <div className="w-full max-w-md">
-            <UnwrappingExperience>
+            <UnwrappingExperience noHint>
               <CardScene skipEntrance>
                 <VirtualGiftCard
                   amount={25}

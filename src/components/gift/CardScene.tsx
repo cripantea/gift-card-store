@@ -112,7 +112,7 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
         // Phase 0 — darkness. entryRig owns entry; tilt owns only rotation.
         gsap.set(entryRig, { opacity: 0, y: 72, x: -18, scale: 0.82, filter: "blur(18px)" });
         gsap.set(tilt,     { rotateX: 25, rotateY: -38 });
-        gsap.set(stage,    { opacity: 0.91 });
+        gsap.set(stage,    { opacity: 0 });
         gsap.set([rimL, rimR, beam1, beam2, glint], { opacity: 0 });
         gsap.set(Array.from(dust.children), { opacity: 0 });
         gsap.set(shadow,   { opacity: 0, scaleX: 0.52 });
@@ -129,7 +129,6 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
           rotateX: 2, rotateY: -28,
           duration: 1.95, ease: "power3.out",
         }, 0.28)
-        .to(stage,  { opacity: 0.50, duration: 1.2, ease: "power2.out" }, 0.28)
         .to(shadow, { opacity: 0.80, scaleX: 0.82, duration: 1.6, ease: "power3.out" }, 0.5)
         .to(rimL,   { opacity: 1, duration: 0.72, ease: "power2.out" }, 1.1)
 
@@ -162,7 +161,6 @@ export function CardScene({ children, skipEntrance = false }: CardSceneProps) {
         .to(shadow, { scaleX: 0.88, x: -5, opacity: 0.60, duration: 1.2, ease: "power2.out" }, 3.85)
 
         // Phase 3 — hero moment (5.1 – 7.0s)
-        .to(stage, { opacity: 0, duration: 1.55, ease: "power2.inOut" }, 4.4)
         .fromTo(beam2,
           { xPercent: -118, opacity: 0 },
           { xPercent: 118, opacity: 0.70, duration: 1.20, ease: "power2.inOut" },

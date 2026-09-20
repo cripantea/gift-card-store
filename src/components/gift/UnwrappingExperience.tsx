@@ -58,9 +58,11 @@ const T_REVEALED = 5600;  // lid fully gone (2400 + 2800 lid + 400 buffer)
 
 export function UnwrappingExperience({
   secretToken,
+  noHint = false,
   children,
 }: {
   secretToken?: string;
+  noHint?: boolean;
   children: ReactNode;
 }) {
   const [stage, setStage]  = useState<Stage>("idle");
@@ -339,13 +341,13 @@ export function UnwrappingExperience({
 
       {/* ─── Hint drag — sotto il box ─────────────────────────────── */}
       <AnimatePresence>
-        {stage === "idle" && (
+        {stage === "idle" && !noHint && (
           <motion.p
             className="text-base font-semibold tracking-[0.20em] uppercase sm:text-lg"
             style={{ color: "#111111" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: [0.55, 1, 0.55] }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 0, transition: { duration: 0.25, repeat: 0 } }}
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
           >
             Trascina il fiocco per aprire
