@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-const DEADLINE = new Date("2026-10-31T23:59:59");
+const DEADLINE = new Date("2026-09-30T23:59:59");
 
 function getTimeLeft() {
   const diff = Math.max(0, DEADLINE.getTime() - Date.now());
@@ -53,7 +53,7 @@ export function GiveawayCountdown() {
     >
       <p className="text-xs leading-snug text-ink-soft">
         Offerta valida<br />
-        <span className="font-medium text-ink">fino al 31 ottobre</span>
+        <span className="font-medium text-ink">fino al 30 settembre</span>
       </p>
 
       <div className="flex items-center gap-3">
