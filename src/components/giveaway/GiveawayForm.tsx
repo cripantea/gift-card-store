@@ -189,14 +189,16 @@ function ServiziSelect({
 type Stage = "form" | "loading" | "revealed";
 
 export function GiveawayForm() {
-  const [stage, setStage]           = useState<Stage>("form");
-  const [nome, setNome]             = useState("");
+  const [stage, setStage]             = useState<Stage>("form");
+  const [nome, setNome]               = useState("");
+  const [cognome, setCognome]         = useState("");
   const [dataNascita, setDataNascita] = useState("");
-  const [servizi, setServizi]       = useState<string[]>([]);
-  const [privacy, setPrivacy]           = useState(false);
-  const [marketing, setMarketing]       = useState(false);
+  const [servizi, setServizi]         = useState<string[]>([]);
+  const [nota, setNota]               = useState("");
+  const [privacy, setPrivacy]         = useState(false);
+  const [marketing, setMarketing]     = useState(false);
 
-  const isValid = nome.trim().length > 0 && dataNascita !== "" && servizi.length > 0 && privacy;
+  const isValid = nome.trim().length > 0 && cognome.trim().length > 0 && dataNascita !== "" && servizi.length > 0 && privacy;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -223,19 +225,34 @@ export function GiveawayForm() {
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.42 }}
         >
-          {/* Nome */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">
-              Nome
-            </label>
-            <input
-              type="text"
-              value={nome}
-              onChange={e => setNome(e.target.value)}
-              placeholder="Come ti chiami?"
-              required
-              className="rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
-            />
+          {/* Nome + Cognome */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">
+                Nome
+              </label>
+              <input
+                type="text"
+                value={nome}
+                onChange={e => setNome(e.target.value)}
+                placeholder="Nome"
+                required
+                className="rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">
+                Cognome
+              </label>
+              <input
+                type="text"
+                value={cognome}
+                onChange={e => setCognome(e.target.value)}
+                placeholder="Cognome"
+                required
+                className="rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
+              />
+            </div>
           </div>
 
           {/* Data di nascita */}
@@ -255,9 +272,23 @@ export function GiveawayForm() {
           {/* Servizi */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">
-              Di cosa hai bisogno?
+              Quali sono i tuoi trattamenti preferiti?
             </label>
             <ServiziSelect selected={servizi} onChange={setServizi} />
+          </div>
+
+          {/* Nota libera */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft">
+              Una domanda, una richiesta, un feedback
+            </label>
+            <textarea
+              value={nota}
+              onChange={e => setNota(e.target.value)}
+              placeholder="Scrivici qualcosa — ci fa piacere leggerti."
+              rows={3}
+              className="resize-none rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
+            />
           </div>
 
           {/* Consensi */}
@@ -373,7 +404,7 @@ export function GiveawayForm() {
             <CardScene>
               <VirtualGiftCard
                 amount={25}
-                recipientName={nome}
+                recipientName={`${nome} ${cognome}`.trim()}
                 buyerFullName="MAD Vigevano"
                 customMessage="Ti aspettiamo in salone. Sarai contattato a breve."
                 cardCode="MAD-GIVE-AWAY"
