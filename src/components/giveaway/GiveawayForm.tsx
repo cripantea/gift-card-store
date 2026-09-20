@@ -217,7 +217,7 @@ export function GiveawayForm() {
               style={{ accentColor: "var(--color-gold)" }}
             />
             <label htmlFor="consenso" className="cursor-pointer text-xs leading-relaxed text-ink-soft">
-              Tienimi aggiornata/o sulle novità MAD — nuovi trattamenti, offerte e tutto quello che succede in salone.
+              Tienimi aggiornata/o sulle novità MAD — offerte riservate, nuovi trattamenti e promozioni pensate per i nostri clienti.
             </label>
           </div>
 
