@@ -11,6 +11,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { generateFormattedCardCode, generateSecretToken } from "@/lib/utils/giftCard";
 import { generateOrderNumber } from "@/lib/utils/order";
+import { notifyFusionCRM } from "@/lib/fusionCrm";
 const GIFT_CARD_VALIDITY_MONTHS = 12;
 const ORDER_NUMBER_MAX_ATTEMPTS = 5;
 
@@ -94,6 +95,31 @@ export async function fulfillOrderAndCreateGiftCard(
     });
 
     return { customer, order, payment, giftCard };
+  });
+
+  notifyFusionCRM({
+    buyer: {
+      firstName: input.buyer.firstName,
+      lastName:  input.buyer.lastName,
+      email:     input.buyer.email,
+    },
+    recipient: {
+      firstName: input.recipient.recipientFirstName,
+      lastName:  input.recipient.recipientLastName,
+      phone:     input.recipient.recipientPhone,
+    },
+    order: {
+      id:          result.order.id,
+      orderNumber: result.order.orderNumber,
+      total:       input.amount,
+      currency:    "EUR",
+    },
+    giftCard: {
+      code:    result.giftCard.cardCode,
+      url:     `${process.env.NEXT_PUBLIC_BASE_URL}/gift/${result.giftCard.secretToken}`,
+      amount:  input.amount,
+      message: input.recipient.customMessage ?? "",
+    },
   });
 
   return result;
