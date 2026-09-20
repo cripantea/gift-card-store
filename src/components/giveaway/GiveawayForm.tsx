@@ -193,9 +193,10 @@ export function GiveawayForm() {
   const [nome, setNome]             = useState("");
   const [dataNascita, setDataNascita] = useState("");
   const [servizi, setServizi]       = useState<string[]>([]);
-  const [consenso, setConsenso]     = useState(false);
+  const [privacy, setPrivacy]           = useState(false);
+  const [marketing, setMarketing]       = useState(false);
 
-  const isValid = nome.trim().length > 0 && dataNascita !== "" && servizi.length > 0 && consenso;
+  const isValid = nome.trim().length > 0 && dataNascita !== "" && servizi.length > 0 && privacy;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -259,19 +260,46 @@ export function GiveawayForm() {
             <ServiziSelect selected={servizi} onChange={setServizi} />
           </div>
 
-          {/* Consenso */}
-          <div className="flex items-start gap-3 rounded-xl border border-sand-dark bg-paper-muted px-4 py-3">
-            <input
-              id="consenso"
-              type="checkbox"
-              checked={consenso}
-              onChange={e => setConsenso(e.target.checked)}
-              className="mt-0.5 h-4 w-4 cursor-pointer rounded"
-              style={{ accentColor: "var(--color-gold)" }}
-            />
-            <label htmlFor="consenso" className="cursor-pointer text-xs leading-relaxed text-ink-soft">
-              Tienimi aggiornata/o sulle novità MAD — offerte riservate, nuovi trattamenti e promozioni pensate per i nostri clienti.
-            </label>
+          {/* Consensi */}
+          <div className="flex flex-col gap-2.5 rounded-xl border border-sand-dark bg-paper-muted px-4 py-3.5">
+            {/* Privacy — obbligatorio */}
+            <div className="flex items-start gap-3">
+              <input
+                id="privacy"
+                type="checkbox"
+                required
+                checked={privacy}
+                onChange={e => setPrivacy(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded"
+                style={{ accentColor: "var(--color-gold)" }}
+              />
+              <label htmlFor="privacy" className="cursor-pointer text-xs leading-relaxed text-ink-soft">
+                Ho letto e accetto l&apos;
+                <span className="font-medium text-ink">informativa sul trattamento dei dati personali</span>.{" "}
+                I miei dati saranno trattati da MAD Vigevano (Via Cairoli 6, Vigevano PV)
+                esclusivamente per gestire questa richiesta.{" "}
+                <span className="text-[0.65rem] text-neutral-400">(obbligatorio)</span>
+              </label>
+            </div>
+
+            <div className="border-t border-sand" />
+
+            {/* Marketing — opzionale */}
+            <div className="flex items-start gap-3">
+              <input
+                id="marketing"
+                type="checkbox"
+                checked={marketing}
+                onChange={e => setMarketing(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded"
+                style={{ accentColor: "var(--color-gold)" }}
+              />
+              <label htmlFor="marketing" className="cursor-pointer text-xs leading-relaxed text-ink-soft">
+                Acconsento a ricevere offerte riservate, novità e promozioni da MAD Vigevano
+                via WhatsApp o email. Posso revocare il consenso in qualsiasi momento.{" "}
+                <span className="text-[0.65rem] text-neutral-400">(facoltativo)</span>
+              </label>
+            </div>
           </div>
 
           {/* Submit */}
@@ -289,6 +317,13 @@ export function GiveawayForm() {
               "Scopri il tuo regalo →"
             )}
           </button>
+
+          {/* Note legali */}
+          <p className="text-center text-[0.62rem] leading-relaxed text-neutral-400">
+            Titolare del trattamento: MAD Vigevano · Via Cairoli 6, 27029 Vigevano (PV) · Tel.&nbsp;0381&nbsp;644268.
+            Hai diritto di accedere, rettificare o cancellare i tuoi dati in qualsiasi momento
+            contattandoci al numero sopra. Il consenso marketing può essere revocato in ogni momento.
+          </p>
         </motion.form>
       )}
 

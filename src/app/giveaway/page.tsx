@@ -1,4 +1,5 @@
 import { GiveawayForm } from "@/components/giveaway/GiveawayForm";
+import { GiveawayCountdown } from "@/components/giveaway/GiveawayCountdown";
 
 export const metadata = {
   title: "Un regalo per te — MAD Vigevano",
@@ -27,6 +28,8 @@ export default function GiveawayPage() {
           Due minuti per dirci cosa ami di più — così ogni tua visita
           può essere ancora più su misura. In cambio, tieni questo.
         </p>
+
+        <GiveawayCountdown />
       </div>
 
       {/* Form */}
