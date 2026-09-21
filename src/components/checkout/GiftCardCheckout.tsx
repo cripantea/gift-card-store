@@ -69,13 +69,11 @@ export function GiftCardCheckout() {
     : undefined;
 
   const effectiveRecipient: RecipientFields =
-    giftMode === "self" || deliveryTarget === "self"
-      ? {
-          recipientFirstName: buyer.firstName,
-          recipientLastName: buyer.lastName,
-          recipientPhone: buyer.phone,
-        }
-      : recipient;
+    giftMode === "self"
+      ? { recipientFirstName: buyer.firstName, recipientLastName: buyer.lastName, recipientPhone: buyer.phone }
+      : deliveryTarget === "other"
+      ? recipient
+      : { ...recipient, recipientPhone: buyer.phone }; // gift mode, ricevi tu: use recipient name but buyer's phone
 
   const validation = useMemo(
     () =>

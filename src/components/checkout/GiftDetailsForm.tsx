@@ -204,12 +204,42 @@ export function GiftDetailsForm({
       <AnimatePresence>
         {giftMode === "gift" && (
           <>
+            {/* Recipient name — always shown in gift mode */}
+            <motion.section key="recipient-name" {...slide(0.08)}>
+              <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
+                <Gift className="h-5 w-5 text-gold" />
+                A chi è il regalo
+              </h2>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <TextField
+                  id="recipient-first-name"
+                  label="Nome"
+                  value={recipient.recipientFirstName}
+                  autoComplete="given-name"
+                  placeholder="Nome del destinatario"
+                  onChange={(v) =>
+                    onRecipientChange({ ...recipient, recipientFirstName: v })
+                  }
+                />
+                <TextField
+                  id="recipient-last-name"
+                  label="Cognome"
+                  value={recipient.recipientLastName}
+                  autoComplete="family-name"
+                  placeholder="Cognome"
+                  onChange={(v) =>
+                    onRecipientChange({ ...recipient, recipientLastName: v })
+                  }
+                />
+              </div>
+            </motion.section>
+
             {/* Delivery target sub-toggle — hidden, set SHOW_DELIVERY_TARGET=true to re-enable */}
             {SHOW_DELIVERY_TARGET && (
-              <motion.section key="delivery-target" {...slide(0.05)}>
+              <motion.section key="delivery-target" {...slide(0.1)}>
                 <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
                   <Phone className="h-5 w-5 text-gold" />
-                  Chi riceve il WhatsApp
+                  Consegna WhatsApp
                 </h2>
                 <div className="mt-4 flex rounded-2xl border border-line bg-paper-muted/40 p-1">
                   <button
@@ -244,57 +274,29 @@ export function GiftDetailsForm({
               </motion.section>
             )}
 
-            {/* Recipient fields — hidden with toggle, always "self" for now */}
+            {/* Extra recipient phone — only when "other" and toggle visible */}
             {SHOW_DELIVERY_TARGET && deliveryTarget === "other" && (
               <motion.section
-                key="recipient"
+                key="recipient-phone"
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.35, ease: "easeOut" }}
               >
-                <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
-                  <Gift className="h-5 w-5 text-gold" />
-                  Il destinatario
-                </h2>
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <TextField
-                    id="recipient-first-name"
-                    label="Nome"
-                    value={recipient.recipientFirstName}
-                    autoComplete="given-name"
-                    placeholder="Nome"
-                    onChange={(v) =>
-                      onRecipientChange({ ...recipient, recipientFirstName: v })
-                    }
-                  />
-                  <TextField
-                    id="recipient-last-name"
-                    label="Cognome"
-                    value={recipient.recipientLastName}
-                    autoComplete="family-name"
-                    placeholder="Cognome"
-                    onChange={(v) =>
-                      onRecipientChange({ ...recipient, recipientLastName: v })
-                    }
-                  />
-                  <div className="sm:col-span-2">
-                    <TextField
-                      id="recipient-phone"
-                      label="Numero di telefono"
-                      type="tel"
-                      value={recipient.recipientPhone}
-                      autoComplete="tel"
-                      placeholder="+39 333 123 4567"
-                      onChange={(v) =>
-                        onRecipientChange({ ...recipient, recipientPhone: v })
-                      }
-                    />
-                  </div>
-                </div>
+                <TextField
+                  id="recipient-phone"
+                  label="Numero di telefono del destinatario"
+                  type="tel"
+                  value={recipient.recipientPhone}
+                  autoComplete="tel"
+                  placeholder="+39 333 123 4567"
+                  onChange={(v) =>
+                    onRecipientChange({ ...recipient, recipientPhone: v })
+                  }
+                />
                 <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-soft/70">
                   <Phone className="h-3.5 w-3.5" />
-                  Il destinatario riceverà la gift card via WhatsApp.
+                  Il destinatario riceverà la gift card su questo numero via WhatsApp.
                 </p>
               </motion.section>
             )}
