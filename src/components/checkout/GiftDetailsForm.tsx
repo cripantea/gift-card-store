@@ -6,13 +6,14 @@ import { CalendarClock, Gift, MessageSquareText, Phone, User } from "lucide-reac
 export const CUSTOM_MESSAGE_MAX_LENGTH = 300;
 
 export type GiftMode = "self" | "gift";
+export type DeliveryTarget = "self" | "other";
 
-function section(delay: number) {
+function slide(delay = 0) {
   return {
-    initial: { opacity: 0, y: 18 },
+    initial: { opacity: 0, y: 14 },
     animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -10 },
-    transition: { duration: 0.4, ease: "easeOut" as const, delay },
+    exit:    { opacity: 0, y: -8 },
+    transition: { duration: 0.35, ease: "easeOut" as const, delay },
   };
 }
 
@@ -24,16 +25,14 @@ function TextField({
   onChange,
   autoComplete,
   placeholder,
-  required = true,
 }: {
   id: string;
   label: string;
   type?: "text" | "tel";
   value: string;
-  onChange: (value: string) => void;
+  onChange: (v: string) => void;
   autoComplete?: string;
   placeholder?: string;
-  required?: boolean;
 }) {
   return (
     <div>
@@ -44,7 +43,7 @@ function TextField({
         id={id}
         name={id}
         type={type}
-        required={required}
+        required
         value={value}
         autoComplete={autoComplete}
         placeholder={placeholder}
@@ -69,20 +68,24 @@ export interface RecipientFields {
 
 interface GiftDetailsFormProps {
   giftMode: GiftMode;
-  onGiftModeChange: (mode: GiftMode) => void;
+  onGiftModeChange: (m: GiftMode) => void;
+  deliveryTarget: DeliveryTarget;
+  onDeliveryTargetChange: (t: DeliveryTarget) => void;
   buyer: BuyerFields;
-  onBuyerChange: (buyer: BuyerFields) => void;
+  onBuyerChange: (b: BuyerFields) => void;
   recipient: RecipientFields;
-  onRecipientChange: (recipient: RecipientFields) => void;
+  onRecipientChange: (r: RecipientFields) => void;
   message: string;
-  onMessageChange: (message: string) => void;
+  onMessageChange: (m: string) => void;
   scheduledAt: string;
-  onScheduledAtChange: (value: string) => void;
+  onScheduledAtChange: (v: string) => void;
 }
 
 export function GiftDetailsForm({
   giftMode,
   onGiftModeChange,
+  deliveryTarget,
+  onDeliveryTargetChange,
   buyer,
   onBuyerChange,
   recipient,
@@ -116,8 +119,8 @@ export function GiftDetailsForm({
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Mode selector */}
-      <motion.div {...section(0)}>
+      {/* Top mode toggle */}
+      <motion.div {...slide(0)}>
         <div className="flex rounded-2xl border border-line bg-paper-muted/40 p-1">
           <button
             type="button"
@@ -152,7 +155,7 @@ export function GiftDetailsForm({
       </motion.div>
 
       {/* Buyer */}
-      <motion.section {...section(0.05)}>
+      <motion.section {...slide(0.05)}>
         <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
           <User className="h-5 w-5 text-gold" />
           {giftMode === "self" ? "I tuoi dati" : "Chi acquista"}
@@ -164,7 +167,7 @@ export function GiftDetailsForm({
             value={buyer.firstName}
             autoComplete="given-name"
             placeholder="Il tuo nome"
-            onChange={(value) => onBuyerChange({ ...buyer, firstName: value })}
+            onChange={(v) => onBuyerChange({ ...buyer, firstName: v })}
           />
           <TextField
             id="buyer-last-name"
@@ -172,7 +175,7 @@ export function GiftDetailsForm({
             value={buyer.lastName}
             autoComplete="family-name"
             placeholder="Il tuo cognome"
-            onChange={(value) => onBuyerChange({ ...buyer, lastName: value })}
+            onChange={(v) => onBuyerChange({ ...buyer, lastName: v })}
           />
           <div className="sm:col-span-2">
             <TextField
@@ -182,83 +185,119 @@ export function GiftDetailsForm({
               value={buyer.phone}
               autoComplete="tel"
               placeholder="+39 333 123 4567"
-              onChange={(value) => onBuyerChange({ ...buyer, phone: value })}
+              onChange={(v) => onBuyerChange({ ...buyer, phone: v })}
             />
             <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-soft/60">
               <Phone className="h-3 w-3" />
               {giftMode === "self"
-                ? "Riceverai la gift card via WhatsApp su questo numero."
-                : "Riceverai la conferma d'acquisto via WhatsApp."}
+                ? "Riceverai la gift card su questo numero via WhatsApp."
+                : "Riceverai la conferma d'acquisto su questo numero."}
             </p>
           </div>
         </div>
       </motion.section>
 
-      {/* Gift-only sections */}
+      {/* Gift-mode extra sections */}
       <AnimatePresence>
         {giftMode === "gift" && (
           <>
-            {/* Recipient */}
-            <motion.section
-              key="recipient"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.4, ease: "easeOut", delay: 0.05 }}
-            >
+            {/* Delivery target sub-toggle */}
+            <motion.section key="delivery-target" {...slide(0.05)}>
               <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
-                <Gift className="h-5 w-5 text-gold" />
-                Il destinatario
+                <Phone className="h-5 w-5 text-gold" />
+                Chi riceve il WhatsApp
               </h2>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <TextField
-                  id="recipient-first-name"
-                  label="Nome"
-                  value={recipient.recipientFirstName}
-                  autoComplete="given-name"
-                  placeholder="Nome"
-                  onChange={(value) =>
-                    onRecipientChange({ ...recipient, recipientFirstName: value })
+              <div className="mt-4 flex rounded-2xl border border-line bg-paper-muted/40 p-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onDeliveryTargetChange("self");
+                    onScheduledAtChange("");
+                  }}
+                  className={
+                    "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 " +
+                    (deliveryTarget === "self"
+                      ? "bg-gold/90 text-paper shadow-sm"
+                      : "text-ink-soft hover:text-ink")
                   }
-                />
-                <TextField
-                  id="recipient-last-name"
-                  label="Cognome"
-                  value={recipient.recipientLastName}
-                  autoComplete="family-name"
-                  placeholder="Cognome"
-                  onChange={(value) =>
-                    onRecipientChange({ ...recipient, recipientLastName: value })
+                >
+                  Ricevi tu
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDeliveryTargetChange("other")}
+                  className={
+                    "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 " +
+                    (deliveryTarget === "other"
+                      ? "bg-gold/90 text-paper shadow-sm"
+                      : "text-ink-soft hover:text-ink")
                   }
-                />
-                <div className="sm:col-span-2">
-                  <TextField
-                    id="recipient-phone"
-                    label="Numero di telefono"
-                    type="tel"
-                    value={recipient.recipientPhone}
-                    autoComplete="tel"
-                    placeholder="+39 333 123 4567"
-                    onChange={(value) =>
-                      onRecipientChange({ ...recipient, recipientPhone: value })
-                    }
-                  />
-                </div>
+                >
+                  <Gift className="h-3.5 w-3.5" />
+                  Manda al destinatario
+                </button>
               </div>
-              <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-soft/70">
-                <Phone className="h-3.5 w-3.5" />
-                Il destinatario riceverà la gift card via WhatsApp.
-              </p>
             </motion.section>
 
+            {/* Recipient fields — only when "other" */}
+            <AnimatePresence>
+              {deliveryTarget === "other" && (
+                <motion.section
+                  key="recipient"
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                >
+                  <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
+                    <Gift className="h-5 w-5 text-gold" />
+                    Il destinatario
+                  </h2>
+                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <TextField
+                      id="recipient-first-name"
+                      label="Nome"
+                      value={recipient.recipientFirstName}
+                      autoComplete="given-name"
+                      placeholder="Nome"
+                      onChange={(v) =>
+                        onRecipientChange({ ...recipient, recipientFirstName: v })
+                      }
+                    />
+                    <TextField
+                      id="recipient-last-name"
+                      label="Cognome"
+                      value={recipient.recipientLastName}
+                      autoComplete="family-name"
+                      placeholder="Cognome"
+                      onChange={(v) =>
+                        onRecipientChange({ ...recipient, recipientLastName: v })
+                      }
+                    />
+                    <div className="sm:col-span-2">
+                      <TextField
+                        id="recipient-phone"
+                        label="Numero di telefono"
+                        type="tel"
+                        value={recipient.recipientPhone}
+                        autoComplete="tel"
+                        placeholder="+39 333 123 4567"
+                        onChange={(v) =>
+                          onRecipientChange({ ...recipient, recipientPhone: v })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-soft/70">
+                    <Phone className="h-3.5 w-3.5" />
+                    Il destinatario riceverà la gift card via WhatsApp.
+                  </p>
+                </motion.section>
+              )}
+            </AnimatePresence>
+
             {/* Message */}
-            <motion.section
-              key="message"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
-            >
+            <motion.section key="message" {...slide(0.1)}>
               <label
                 htmlFor="custom-message"
                 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink"
@@ -281,13 +320,7 @@ export function GiftDetailsForm({
             </motion.section>
 
             {/* Scheduling */}
-            <motion.section
-              key="scheduling"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.4, ease: "easeOut", delay: 0.15 }}
-            >
+            <motion.section key="scheduling" {...slide(0.15)}>
               <div className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
                 <CalendarClock className="h-5 w-5 text-gold" />
                 Invio programmato
@@ -325,7 +358,9 @@ export function GiftDetailsForm({
                   {scheduledDisplay && (
                     <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-soft/70">
                       <Phone className="h-3.5 w-3.5 text-gold" />
-                      Il destinatario riceverà il WhatsApp il{" "}
+                      {deliveryTarget === "other"
+                        ? "Il destinatario riceverà il WhatsApp il "
+                        : "Riceverai il WhatsApp il "}
                       <span className="font-medium text-gold">{scheduledDisplay}</span>.
                     </p>
                   )}

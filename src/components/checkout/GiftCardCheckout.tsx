@@ -9,7 +9,7 @@ import {
   CUSTOM_AMOUNT_MIN,
   type GiftCardDenomination,
 } from "./AmountSelector";
-import { GiftDetailsForm, type GiftMode, type BuyerFields, type RecipientFields } from "./GiftDetailsForm";
+import { GiftDetailsForm, type GiftMode, type DeliveryTarget, type BuyerFields, type RecipientFields } from "./GiftDetailsForm";
 import { PayPalCheckoutButton } from "./PayPalCheckoutButton";
 import { checkoutRequestSchema, type CheckoutRequest } from "@/lib/validation/checkout";
 
@@ -39,6 +39,7 @@ export function GiftCardCheckout() {
   const [customAmount, setCustomAmount] = useState("");
 
   const [giftMode, setGiftMode] = useState<GiftMode>("self");
+  const [deliveryTarget, setDeliveryTarget] = useState<DeliveryTarget>("self");
 
   const [buyer, setBuyer] = useState<BuyerFields>({
     firstName: "",
@@ -68,7 +69,7 @@ export function GiftCardCheckout() {
     : undefined;
 
   const effectiveRecipient: RecipientFields =
-    giftMode === "self"
+    giftMode === "self" || deliveryTarget === "self"
       ? {
           recipientFirstName: buyer.firstName,
           recipientLastName: buyer.lastName,
@@ -88,7 +89,7 @@ export function GiftCardCheckout() {
         scheduledAt: scheduledAtISO,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [buyer, giftMode, recipient, message, amount, scheduledAtISO],
+    [buyer, giftMode, deliveryTarget, recipient, message, amount, scheduledAtISO],
   );
 
   const payload: CheckoutRequest | null = validation.success ? validation.data : null;
@@ -186,6 +187,8 @@ export function GiftCardCheckout() {
         <GiftDetailsForm
           giftMode={giftMode}
           onGiftModeChange={setGiftMode}
+          deliveryTarget={deliveryTarget}
+          onDeliveryTargetChange={setDeliveryTarget}
           buyer={buyer}
           onBuyerChange={setBuyer}
           recipient={recipient}
