@@ -10,6 +10,8 @@ export type DeliveryTarget = "self" | "other";
 
 // Set to true to re-enable the "Ricevi tu / Manda al destinatario" sub-toggle
 const SHOW_DELIVERY_TARGET = false;
+// Set to true to re-enable the scheduled delivery section
+const SHOW_SCHEDULING = false;
 
 function slide(delay = 0) {
   return {
@@ -194,7 +196,7 @@ export function GiftDetailsForm({
               <Phone className="h-3 w-3" />
               {giftMode === "self"
                 ? "Riceverai la gift card su questo numero via WhatsApp."
-                : "Riceverai la conferma d'acquisto su questo numero."}
+                : "Riceverai la gift card su questo numero — inviabile a chi vuoi fare un regalo."}
             </p>
           </div>
         </div>
@@ -208,7 +210,7 @@ export function GiftDetailsForm({
             <motion.section key="recipient-name" {...slide(0.08)}>
               <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
                 <Gift className="h-5 w-5 text-gold" />
-                A chi è il regalo
+                Per chi è il regalo
               </h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <TextField
@@ -324,54 +326,59 @@ export function GiftDetailsForm({
               </p>
             </motion.section>
 
-            {/* Scheduling */}
-            <motion.section key="scheduling" {...slide(0.15)}>
-              <div className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
-                <CalendarClock className="h-5 w-5 text-gold" />
-                Invio programmato
-              </div>
-
-              <label className="mt-4 flex cursor-pointer items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={isScheduled}
-                  onChange={(e) => onScheduledAtChange(e.target.checked ? minDatetime : "")}
-                  className="h-4 w-4 shrink-0 accent-gold cursor-pointer"
-                />
-                <span className="text-sm text-ink-soft">
-                  Scegli data e ora di consegna del WhatsApp
-                </span>
-              </label>
-
-              {isScheduled && (
-                <div className="mt-3">
-                  <label
-                    htmlFor="scheduled-at"
-                    className="mb-1.5 block text-sm font-medium text-ink-soft"
-                  >
-                    Data e ora di invio
-                  </label>
-                  <input
-                    id="scheduled-at"
-                    type="datetime-local"
-                    min={minDatetime}
-                    max={maxDatetime}
-                    value={scheduledAt}
-                    onChange={(e) => onScheduledAtChange(e.target.value)}
-                    className="w-full rounded-xl border border-line bg-paper px-4 py-2.5 text-ink outline-none transition-colors focus:border-gold sm:w-72"
-                  />
-                  {scheduledDisplay && (
-                    <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-soft/70">
-                      <Phone className="h-3.5 w-3.5 text-gold" />
-                      {deliveryTarget === "other"
-                        ? "Il destinatario riceverà il WhatsApp il "
-                        : "Riceverai il WhatsApp il "}
-                      <span className="font-medium text-gold">{scheduledDisplay}</span>.
-                    </p>
-                  )}
+            {/* Scheduling — hidden, set SHOW_SCHEDULING=true to re-enable */}
+            {SHOW_SCHEDULING && (
+              <motion.section key="scheduling" {...slide(0.15)}>
+                <div className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
+                  <CalendarClock className="h-5 w-5 text-gold" />
+                  Ricevi subito o dopo
                 </div>
-              )}
-            </motion.section>
+                <p className="mt-1.5 text-sm text-ink-soft/70">
+                  Il destinatario riceve il WhatsApp immediatamente — oppure scegli la data e l&apos;ora perfetta: Natale, un compleanno, un anniversario.
+                </p>
+
+                <label className="mt-4 flex cursor-pointer items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={isScheduled}
+                    onChange={(e) => onScheduledAtChange(e.target.checked ? minDatetime : "")}
+                    className="h-4 w-4 shrink-0 accent-gold cursor-pointer"
+                  />
+                  <span className="text-sm text-ink-soft">
+                    Scegli data e ora di consegna
+                  </span>
+                </label>
+
+                {isScheduled && (
+                  <div className="mt-3">
+                    <label
+                      htmlFor="scheduled-at"
+                      className="mb-1.5 block text-sm font-medium text-ink-soft"
+                    >
+                      Data e ora di invio
+                    </label>
+                    <input
+                      id="scheduled-at"
+                      type="datetime-local"
+                      min={minDatetime}
+                      max={maxDatetime}
+                      value={scheduledAt}
+                      onChange={(e) => onScheduledAtChange(e.target.value)}
+                      className="w-full rounded-xl border border-line bg-paper px-4 py-2.5 text-ink outline-none transition-colors focus:border-gold sm:w-72"
+                    />
+                    {scheduledDisplay && (
+                      <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-soft/70">
+                        <Phone className="h-3.5 w-3.5 text-gold" />
+                        {deliveryTarget === "other"
+                          ? "Il destinatario riceverà il WhatsApp il "
+                          : "Riceverai il WhatsApp il "}
+                        <span className="font-medium text-gold">{scheduledDisplay}</span>.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </motion.section>
+            )}
           </>
         )}
       </AnimatePresence>
