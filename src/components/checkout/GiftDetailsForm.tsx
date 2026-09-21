@@ -8,6 +8,9 @@ export const CUSTOM_MESSAGE_MAX_LENGTH = 300;
 export type GiftMode = "self" | "gift";
 export type DeliveryTarget = "self" | "other";
 
+// Set to true to re-enable the "Ricevi tu / Manda al destinatario" sub-toggle
+const SHOW_DELIVERY_TARGET = false;
+
 function slide(delay = 0) {
   return {
     initial: { opacity: 0, y: 14 },
@@ -201,100 +204,100 @@ export function GiftDetailsForm({
       <AnimatePresence>
         {giftMode === "gift" && (
           <>
-            {/* Delivery target sub-toggle */}
-            <motion.section key="delivery-target" {...slide(0.05)}>
-              <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
-                <Phone className="h-5 w-5 text-gold" />
-                Chi riceve il WhatsApp
-              </h2>
-              <div className="mt-4 flex rounded-2xl border border-line bg-paper-muted/40 p-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    onDeliveryTargetChange("self");
-                    onScheduledAtChange("");
-                  }}
-                  className={
-                    "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 " +
-                    (deliveryTarget === "self"
-                      ? "bg-gold/90 text-paper shadow-sm"
-                      : "text-ink-soft hover:text-ink")
-                  }
-                >
-                  Ricevi tu
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onDeliveryTargetChange("other")}
-                  className={
-                    "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 " +
-                    (deliveryTarget === "other"
-                      ? "bg-gold/90 text-paper shadow-sm"
-                      : "text-ink-soft hover:text-ink")
-                  }
-                >
-                  <Gift className="h-3.5 w-3.5" />
-                  Manda al destinatario
-                </button>
-              </div>
-            </motion.section>
+            {/* Delivery target sub-toggle — hidden, set SHOW_DELIVERY_TARGET=true to re-enable */}
+            {SHOW_DELIVERY_TARGET && (
+              <motion.section key="delivery-target" {...slide(0.05)}>
+                <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
+                  <Phone className="h-5 w-5 text-gold" />
+                  Chi riceve il WhatsApp
+                </h2>
+                <div className="mt-4 flex rounded-2xl border border-line bg-paper-muted/40 p-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onDeliveryTargetChange("self");
+                      onScheduledAtChange("");
+                    }}
+                    className={
+                      "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 " +
+                      (deliveryTarget === "self"
+                        ? "bg-gold/90 text-paper shadow-sm"
+                        : "text-ink-soft hover:text-ink")
+                    }
+                  >
+                    Ricevi tu
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onDeliveryTargetChange("other")}
+                    className={
+                      "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 " +
+                      (deliveryTarget === "other"
+                        ? "bg-gold/90 text-paper shadow-sm"
+                        : "text-ink-soft hover:text-ink")
+                    }
+                  >
+                    <Gift className="h-3.5 w-3.5" />
+                    Manda al destinatario
+                  </button>
+                </div>
+              </motion.section>
+            )}
 
-            {/* Recipient fields — only when "other" */}
-            <AnimatePresence>
-              {deliveryTarget === "other" && (
-                <motion.section
-                  key="recipient"
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
-                >
-                  <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
-                    <Gift className="h-5 w-5 text-gold" />
-                    Il destinatario
-                  </h2>
-                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {/* Recipient fields — hidden with toggle, always "self" for now */}
+            {SHOW_DELIVERY_TARGET && deliveryTarget === "other" && (
+              <motion.section
+                key="recipient"
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+              >
+                <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
+                  <Gift className="h-5 w-5 text-gold" />
+                  Il destinatario
+                </h2>
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <TextField
+                    id="recipient-first-name"
+                    label="Nome"
+                    value={recipient.recipientFirstName}
+                    autoComplete="given-name"
+                    placeholder="Nome"
+                    onChange={(v) =>
+                      onRecipientChange({ ...recipient, recipientFirstName: v })
+                    }
+                  />
+                  <TextField
+                    id="recipient-last-name"
+                    label="Cognome"
+                    value={recipient.recipientLastName}
+                    autoComplete="family-name"
+                    placeholder="Cognome"
+                    onChange={(v) =>
+                      onRecipientChange({ ...recipient, recipientLastName: v })
+                    }
+                  />
+                  <div className="sm:col-span-2">
                     <TextField
-                      id="recipient-first-name"
-                      label="Nome"
-                      value={recipient.recipientFirstName}
-                      autoComplete="given-name"
-                      placeholder="Nome"
+                      id="recipient-phone"
+                      label="Numero di telefono"
+                      type="tel"
+                      value={recipient.recipientPhone}
+                      autoComplete="tel"
+                      placeholder="+39 333 123 4567"
                       onChange={(v) =>
-                        onRecipientChange({ ...recipient, recipientFirstName: v })
+                        onRecipientChange({ ...recipient, recipientPhone: v })
                       }
                     />
-                    <TextField
-                      id="recipient-last-name"
-                      label="Cognome"
-                      value={recipient.recipientLastName}
-                      autoComplete="family-name"
-                      placeholder="Cognome"
-                      onChange={(v) =>
-                        onRecipientChange({ ...recipient, recipientLastName: v })
-                      }
-                    />
-                    <div className="sm:col-span-2">
-                      <TextField
-                        id="recipient-phone"
-                        label="Numero di telefono"
-                        type="tel"
-                        value={recipient.recipientPhone}
-                        autoComplete="tel"
-                        placeholder="+39 333 123 4567"
-                        onChange={(v) =>
-                          onRecipientChange({ ...recipient, recipientPhone: v })
-                        }
-                      />
-                    </div>
                   </div>
-                  <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-soft/70">
-                    <Phone className="h-3.5 w-3.5" />
-                    Il destinatario riceverà la gift card via WhatsApp.
-                  </p>
-                </motion.section>
-              )}
-            </AnimatePresence>
+                </div>
+                <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-soft/70">
+                  <Phone className="h-3.5 w-3.5" />
+                  Il destinatario riceverà la gift card via WhatsApp.
+                </p>
+              </motion.section>
+            )}
 
             {/* Message */}
             <motion.section key="message" {...slide(0.1)}>
