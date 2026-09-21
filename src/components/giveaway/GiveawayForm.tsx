@@ -408,7 +408,7 @@ export function GiveawayForm() {
                   amount={25}
                   recipientName={`${nome} ${cognome}`.trim()}
                   buyerFullName="MAD Vigevano"
-                  customMessage="Sarai contattato a breve per ritirare il tuo regalo."
+                  customMessage="Un regalo per ringraziare i nostri cari clienti"
                   cardCode="MAD-GIVE-AWAY"
                   expiresAt={expiresAt}
                 />
