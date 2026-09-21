@@ -120,6 +120,7 @@ model PendingPaypalCheckout {
   buyerFirstName   String
   buyerLastName    String
   buyerEmail       String
+  buyerPhone       String?
   recipientFirstName String
   recipientLastName  String
   recipientPhone   String

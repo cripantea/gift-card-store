@@ -19,6 +19,7 @@ export interface FulfillOrderBuyer {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string | null;
 }
 
 export interface FulfillOrderRecipient {
@@ -54,8 +55,11 @@ export async function fulfillOrderAndCreateGiftCard(
         firstName: input.buyer.firstName,
         lastName: input.buyer.lastName,
         email: input.buyer.email,
+        phone: input.buyer.phone ?? null,
       },
-      update: {},
+      update: {
+        ...(input.buyer.phone ? { phone: input.buyer.phone } : {}),
+      },
     });
 
     const order = await createOrderWithUniqueNumber(tx, {
@@ -102,17 +106,15 @@ export async function fulfillOrderAndCreateGiftCard(
       firstName: input.buyer.firstName,
       lastName:  input.buyer.lastName,
       email:     input.buyer.email,
+      phone:     input.buyer.phone ?? null,
     },
     recipient: {
       firstName: input.recipient.recipientFirstName,
-      lastName:  input.recipient.recipientLastName,
       phone:     input.recipient.recipientPhone,
     },
     order: {
-      id:          result.order.id,
-      orderNumber: result.order.orderNumber,
-      total:       input.amount,
-      currency:    "EUR",
+      id:    result.order.id,
+      total: input.amount,
     },
     giftCard: {
       code:    result.giftCard.cardCode,

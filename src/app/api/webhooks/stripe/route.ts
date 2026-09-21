@@ -51,6 +51,7 @@ export async function POST(request: Request): Promise<NextResponse<WebhookAck | 
           firstName: metadata.buyerFirstName,
           lastName: metadata.buyerLastName,
           email: metadata.buyerEmail,
+          phone: metadata.buyerPhone || null,
         },
         paymentProvider: PaymentProvider.STRIPE,
         transactionId,

@@ -30,6 +30,7 @@ export async function POST(
     buyerFirstName: buyer.firstName,
     buyerLastName: buyer.lastName,
     buyerEmail: buyer.email,
+    buyerPhone: buyer.phone ?? "",
     recipientFirstName: recipient.recipientFirstName,
     recipientLastName: recipient.recipientLastName,
     recipientPhone: recipient.recipientPhone,

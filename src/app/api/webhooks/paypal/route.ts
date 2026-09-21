@@ -76,6 +76,7 @@ export async function POST(request: Request): Promise<NextResponse<WebhookAck | 
           firstName: pendingCheckout.buyerFirstName,
           lastName: pendingCheckout.buyerLastName,
           email: pendingCheckout.buyerEmail,
+          phone: pendingCheckout.buyerPhone ?? null,
         },
         paymentProvider: PaymentProvider.PAYPAL,
         transactionId: event.resource.id,

@@ -56,6 +56,7 @@ interface BuyerFields {
   firstName: string;
   lastName: string;
   email: string;
+  phone: string;
 }
 
 interface RecipientFields {
@@ -139,6 +140,27 @@ export function GiftDetailsForm({
               placeholder="nome@esempio.it"
               onChange={(value) => onBuyerChange({ ...buyer, email: value })}
             />
+          </div>
+          <div className="sm:col-span-2">
+            <div>
+              <label htmlFor="buyer-phone" className="mb-1.5 block text-sm font-medium text-ink-soft">
+                Telefono <span className="text-ink-soft/50 font-normal">(opzionale)</span>
+              </label>
+              <input
+                id="buyer-phone"
+                name="buyer-phone"
+                type="tel"
+                value={buyer.phone}
+                autoComplete="tel"
+                placeholder="+39 333 123 4567"
+                onChange={(e) => onBuyerChange({ ...buyer, phone: e.target.value })}
+                className="w-full rounded-xl border border-line bg-paper px-4 py-2.5 text-ink outline-none transition-colors placeholder:text-ink-soft/40 focus:border-gold"
+              />
+              <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-soft/60">
+                <Phone className="h-3 w-3" />
+                Riceverai la conferma d&apos;acquisto via WhatsApp.
+              </p>
+            </div>
           </div>
         </div>
       </motion.section>
