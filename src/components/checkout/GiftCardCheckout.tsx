@@ -9,7 +9,7 @@ import {
   CUSTOM_AMOUNT_MIN,
   type GiftCardDenomination,
 } from "./AmountSelector";
-import { GiftDetailsForm } from "./GiftDetailsForm";
+import { GiftDetailsForm, type GiftMode, type BuyerFields, type RecipientFields } from "./GiftDetailsForm";
 import { PayPalCheckoutButton } from "./PayPalCheckoutButton";
 import { checkoutRequestSchema, type CheckoutRequest } from "@/lib/validation/checkout";
 
@@ -20,19 +20,6 @@ interface StripeCheckoutResponse {
 
 interface ApiErrorResponse {
   error: string;
-}
-
-interface BuyerFields {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-}
-
-interface RecipientFields {
-  recipientFirstName: string;
-  recipientLastName: string;
-  recipientPhone: string;
 }
 
 function fadeUp(delay: number) {
@@ -51,10 +38,11 @@ export function GiftCardCheckout() {
   const [isCustomAmount, setIsCustomAmount] = useState(false);
   const [customAmount, setCustomAmount] = useState("");
 
+  const [giftMode, setGiftMode] = useState<GiftMode>("self");
+
   const [buyer, setBuyer] = useState<BuyerFields>({
     firstName: "",
     lastName: "",
-    email: "",
     phone: "",
   });
   const [recipient, setRecipient] = useState<RecipientFields>({
@@ -79,18 +67,28 @@ export function GiftCardCheckout() {
     ? new Date(scheduledAt).toISOString()
     : undefined;
 
+  const effectiveRecipient: RecipientFields =
+    giftMode === "self"
+      ? {
+          recipientFirstName: buyer.firstName,
+          recipientLastName: buyer.lastName,
+          recipientPhone: buyer.phone,
+        }
+      : recipient;
+
   const validation = useMemo(
     () =>
       checkoutRequestSchema.safeParse({
         buyer,
         recipient: {
-          ...recipient,
+          ...effectiveRecipient,
           customMessage: message.trim() ? message : undefined,
         },
         amount,
         scheduledAt: scheduledAtISO,
       }),
-    [buyer, recipient, message, amount, scheduledAtISO],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [buyer, giftMode, recipient, message, amount, scheduledAtISO],
   );
 
   const payload: CheckoutRequest | null = validation.success ? validation.data : null;
@@ -186,6 +184,8 @@ export function GiftCardCheckout() {
         <hr className="border-line" />
 
         <GiftDetailsForm
+          giftMode={giftMode}
+          onGiftModeChange={setGiftMode}
           buyer={buyer}
           onBuyerChange={setBuyer}
           recipient={recipient}

@@ -4,7 +4,7 @@ interface FusionCRMPayload {
   buyer: {
     firstName: string;
     lastName: string;
-    email: string;
+    email?: string;
     phone?: string;
   };
   recipient: {
@@ -35,7 +35,7 @@ export interface NotifyFusionCRMInput {
   buyer: {
     firstName: string;
     lastName: string;
-    email: string;
+    email?: string | null;
     phone?: string | null;
   };
   recipient: {
@@ -61,7 +61,7 @@ export function notifyFusionCRM(input: NotifyFusionCRMInput): void {
     buyer: {
       firstName: input.buyer.firstName,
       lastName:  input.buyer.lastName,
-      email:     input.buyer.email,
+      email:     input.buyer.email ?? undefined,
       phone:     normalizePhone(input.buyer.phone),
     },
     recipient: {

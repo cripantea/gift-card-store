@@ -18,8 +18,7 @@ const ORDER_NUMBER_MAX_ATTEMPTS = 5;
 export interface FulfillOrderBuyer {
   firstName: string;
   lastName: string;
-  email: string;
-  phone?: string | null;
+  phone: string;
 }
 
 export interface FulfillOrderRecipient {
@@ -50,15 +49,15 @@ export async function fulfillOrderAndCreateGiftCard(
 ): Promise<FulfillOrderAndCreateGiftCardResult> {
   const result = await prisma.$transaction(async (tx) => {
     const customer = await tx.customer.upsert({
-      where: { email: input.buyer.email },
+      where: { phone: input.buyer.phone },
       create: {
         firstName: input.buyer.firstName,
         lastName: input.buyer.lastName,
-        email: input.buyer.email,
-        phone: input.buyer.phone ?? null,
+        phone: input.buyer.phone,
       },
       update: {
-        ...(input.buyer.phone ? { phone: input.buyer.phone } : {}),
+        firstName: input.buyer.firstName,
+        lastName: input.buyer.lastName,
       },
     });
 
@@ -105,8 +104,8 @@ export async function fulfillOrderAndCreateGiftCard(
     buyer: {
       firstName: input.buyer.firstName,
       lastName:  input.buyer.lastName,
-      email:     input.buyer.email,
-      phone:     input.buyer.phone ?? null,
+      email:     undefined,
+      phone:     input.buyer.phone,
     },
     recipient: {
       firstName: input.recipient.recipientFirstName,
