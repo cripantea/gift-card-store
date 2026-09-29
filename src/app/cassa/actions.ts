@@ -19,7 +19,7 @@ export interface AdminGiftCard {
   recipientLastName: string;
   recipientPhone: string;
   buyerName: string;
-  buyerEmail: string;
+  buyerEmail: string | null;
   amount: number;
   status: GiftCardStatus;
   createdAt: string;

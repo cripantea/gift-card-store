@@ -29,7 +29,7 @@ export async function POST(
   const metadata: Stripe.MetadataParam = {
     buyerFirstName: buyer.firstName,
     buyerLastName: buyer.lastName,
-    buyerEmail: buyer.email,
+    buyerPhone: buyer.phone,
     recipientFirstName: recipient.recipientFirstName,
     recipientLastName: recipient.recipientLastName,
     recipientPhone: recipient.recipientPhone,
@@ -41,7 +41,6 @@ export async function POST(
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      customer_email: buyer.email,
       line_items: [
         {
           quantity: 1,

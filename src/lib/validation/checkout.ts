@@ -4,7 +4,7 @@ export const checkoutRequestSchema = z.object({
   buyer: z.object({
     firstName: z.string().trim().min(1).max(100),
     lastName: z.string().trim().min(1).max(100),
-    email: z.string().trim().email().max(255),
+    phone: z.string().trim().min(7).max(20),
   }),
   recipient: z.object({
     recipientFirstName: z.string().trim().min(1).max(100),
@@ -12,7 +12,7 @@ export const checkoutRequestSchema = z.object({
     recipientPhone: z.string().trim().min(7).max(20),
     customMessage: z.string().trim().max(300).optional(),
   }),
-  amount: z.number().min(50).max(10_000),
+  amount: z.number().min(0.10).max(10_000),
   scheduledAt: z.string().datetime().optional(),
 });
 
@@ -21,7 +21,7 @@ export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>;
 export const stripeCheckoutMetadataSchema = z.object({
   buyerFirstName: z.string().min(1),
   buyerLastName: z.string().min(1),
-  buyerEmail: z.string().email(),
+  buyerPhone: z.string().min(1),
   recipientFirstName: z.string().min(1),
   recipientLastName: z.string().min(1),
   recipientPhone: z.string().min(1),

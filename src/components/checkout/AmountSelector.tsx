@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 
-export const GIFT_CARD_DENOMINATIONS = [50, 100, 150, 200] as const;
+export const GIFT_CARD_DENOMINATIONS = [0.10, 50, 100, 150, 200] as const;
 
 export type GiftCardDenomination = (typeof GIFT_CARD_DENOMINATIONS)[number];
 
@@ -52,7 +52,12 @@ export function AmountSelector({
                   <Check className="h-3 w-3" strokeWidth={3} />
                 </span>
               )}
-              <span className="font-display text-2xl">{value}€</span>
+              <span className="font-display text-2xl">
+                {value < 1 ? `0,${String(Math.round(value * 100)).padStart(2, "0")}€` : `${value}€`}
+              </span>
+              {value < 1 && (
+                <span className="text-[10px] font-medium uppercase tracking-widest opacity-60">test</span>
+              )}
             </button>
           );
         })}

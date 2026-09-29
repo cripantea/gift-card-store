@@ -18,8 +18,8 @@ export default function Home() {
             Regala un&apos;esperienza esclusiva
           </h1>
           <p className="max-w-md text-sm leading-relaxed text-ink-soft sm:text-base">
-            Scegli il valore della tua Gift Card MAD Vigevano. Il destinatario
-            riceverà un WhatsApp da MAD for Hair con il link per prenotare il suo trattamento.
+            Acquista online, ricevi la gift card via WhatsApp e usala in salone
+            per vivere un&apos;esperienza di bellezza da MAD for Hair.
           </p>
         </div>
       </section>
@@ -68,8 +68,8 @@ export default function Home() {
               <div>
                 <p className="font-display text-xl font-semibold text-ink">Scegli il valore</p>
                 <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
-                  Acquista per te o per qualcuno di speciale. Seleziona l&apos;importo
-                  e personalizza il messaggio.
+                  Per te o per qualcuno di speciale. Scegli l&apos;importo e,
+                  se vuoi, aggiungi una dedica personalizzata.
                 </p>
               </div>
             </div>
@@ -89,10 +89,10 @@ export default function Home() {
                 </svg>
               </div>
               <div>
-                <p className="font-display text-xl font-semibold text-ink">Ricevi subito o dopo</p>
+                <p className="font-display text-xl font-semibold text-ink">Ricevi via WhatsApp</p>
                 <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
-                  Il destinatario riceve il WhatsApp immediatamente — oppure scegli
-                  la data e l&apos;ora perfetta: Natale, un compleanno, un anniversario.
+                  Ti arriva subito un messaggio WhatsApp con il codice e il link
+                  della tua gift card. Niente spedizioni, niente attese.
                 </p>
               </div>
             </div>
@@ -115,8 +115,8 @@ export default function Home() {
               <div>
                 <p className="font-display text-xl font-semibold text-ink">Vieni in salone</p>
                 <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
-                  Mostra il codice all&apos;ingresso di MAD Vigevano e goditi
-                  la tua esperienza di bellezza.
+                  Mostra il codice alla cassa di MAD Vigevano e goditi
+                  il tuo trattamento. Valida 12 mesi dall&apos;acquisto.
                 </p>
               </div>
             </div>
@@ -141,13 +141,13 @@ export default function Home() {
                 <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                 <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
               </svg>
-              Consegna via WhatsApp immediata
+              Consegna via WhatsApp
             </div>
             <div className="flex items-center gap-2 text-xs text-ink-soft/70">
               <svg viewBox="0 0 20 20" className="h-4 w-4 text-gold/70" fill="currentColor">
-                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm2.5 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6.207.293a1 1 0 00-1.414 0l-6.5 6.5a1 1 0 101.414 1.414l6.5-6.5a1 1 0 000-1.414zM12.5 10a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" clipRule="evenodd" />
               </svg>
-              Invio programmato
+              Nessuna spedizione
             </div>
           </div>
         </div>

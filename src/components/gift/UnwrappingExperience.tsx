@@ -58,9 +58,11 @@ const T_REVEALED = 5600;  // lid fully gone (2400 + 2800 lid + 400 buffer)
 
 export function UnwrappingExperience({
   secretToken,
+  noHint = false,
   children,
 }: {
-  secretToken: string;
+  secretToken?: string;
+  noHint?: boolean;
   children: ReactNode;
 }) {
   const [stage, setStage]  = useState<Stage>("idle");
@@ -76,7 +78,7 @@ export function UnwrappingExperience({
     const len = Math.sqrt(dx ** 2 + dy ** 2) || 1;
     setBowDir({ x: dx / len, y: dy / len });
 
-    markGiftCardAsOpened(secretToken).catch(console.error);
+    if (secretToken) markGiftCardAsOpened(secretToken).catch(console.error);
     setStage("unwrapping");
     setTimeout(() => setStage("opening"),  T_OPENING);
     setTimeout(() => setStage("revealed"), T_REVEALED);
@@ -241,24 +243,6 @@ export function UnwrappingExperience({
               </motion.div>
             </motion.div>
 
-            {/* Pulsing glow behind bow — draws attention while idle */}
-            <AnimatePresence>
-              {stage === "idle" && (
-                <motion.div
-                  key="bowglow"
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
-                  style={{
-                    width: 96, height: 96,
-                    background: "radial-gradient(ellipse, rgba(200,150,30,0.32) 0%, transparent 70%)",
-                    zIndex: 35,
-                  }}
-                  initial={{ opacity: 0, scale: 0.6 }}
-                  animate={{ opacity: [0.3, 0.8, 0.3], scale: [1, 1.6, 1] }}
-                  exit={{ opacity: 0, scale: 0.6, transition: { duration: 0.4 } }}
-                  transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-                />
-              )}
-            </AnimatePresence>
 
             {/* Bow — draggable, with idle sway */}
             <motion.div
@@ -345,8 +329,8 @@ export function UnwrappingExperience({
           <motion.div
             key="card"
             className="w-full"
-            initial={{ opacity: 0, y: 48, scale: 0.91 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
+            initial={{ opacity: 0, y: 48 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.7, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
           >
             {children}
@@ -357,13 +341,13 @@ export function UnwrappingExperience({
 
       {/* ─── Hint drag — sotto il box ─────────────────────────────── */}
       <AnimatePresence>
-        {stage === "idle" && (
+        {stage === "idle" && !noHint && (
           <motion.p
-            className="text-sm font-medium tracking-[0.18em] uppercase sm:text-base"
-            style={{ color: "#c3a06a" }}
+            className="text-base font-semibold tracking-[0.20em] uppercase sm:text-lg"
+            style={{ color: "#111111" }}
             initial={{ opacity: 0 }}
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            exit={{ opacity: 0 }}
+            animate={{ opacity: [0.55, 1, 0.55] }}
+            exit={{ opacity: 0, transition: { duration: 0.25, repeat: 0 } }}
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
           >
             Trascina il fiocco per aprire
@@ -391,44 +375,43 @@ function RibbonShimmer({ horizontal }: { horizontal?: boolean }) {
   );
 }
 
-/* ─── GoldBow — fiocco naturale, asimmetrico, con creases ────────────── */
+/* ─── GoldBow — fiocco dorato satinato, asimmetrico, con creases ─────── */
 function GoldBow() {
   return (
     <svg
-      width="172" height="120"
+      width="210" height="147"
       viewBox="0 0 172 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ opacity: 0.90 }}
     >
       <defs>
-        {/* Oro caldo — highlights bianchi per effetto sbrillucicante */}
+        {/* Satin dorato — sfumature calde oro/ambra */}
         <linearGradient id="gL" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.92" />
-          <stop offset="18%"  stopColor="#f4e080" />
-          <stop offset="44%"  stopColor="#c8961e" />
-          <stop offset="68%"  stopColor="#f0d060" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0.88" />
+          <stop offset="0%"   stopColor="#fde9a8" stopOpacity="0.92" />
+          <stop offset="18%"  stopColor="#c3a06a" />
+          <stop offset="44%"  stopColor="#7a5830" />
+          <stop offset="68%"  stopColor="#a4794b" />
+          <stop offset="100%" stopColor="#f0d060" stopOpacity="0.80" />
         </linearGradient>
         <linearGradient id="gR" x1="1" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.92" />
-          <stop offset="18%"  stopColor="#f4e080" />
-          <stop offset="44%"  stopColor="#c8961e" />
-          <stop offset="66%"  stopColor="#f0d060" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0.88" />
+          <stop offset="0%"   stopColor="#fde9a8" stopOpacity="0.92" />
+          <stop offset="18%"  stopColor="#c3a06a" />
+          <stop offset="44%"  stopColor="#7a5830" />
+          <stop offset="66%"  stopColor="#a4794b" />
+          <stop offset="100%" stopColor="#f0d060" stopOpacity="0.80" />
         </linearGradient>
         <linearGradient id="gK" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#fde9a8" />
-          <stop offset="40%"  stopColor="#c8961e" />
-          <stop offset="100%" stopColor="#9a7018" />
+          <stop offset="0%"   stopColor="#c3a06a" />
+          <stop offset="40%"  stopColor="#6b4c26" />
+          <stop offset="100%" stopColor="#3d2a0e" />
         </linearGradient>
         <linearGradient id="gT" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#f4e080" />
-          <stop offset="50%"  stopColor="#c8961e" />
-          <stop offset="100%" stopColor="#a07818" stopOpacity="0.60" />
+          <stop offset="0%"   stopColor="#c3a06a" />
+          <stop offset="50%"  stopColor="#a4794b" />
+          <stop offset="100%" stopColor="#6b4c26" stopOpacity="0.65" />
         </linearGradient>
         <filter id="s" x="-35%" y="-35%" width="170%" height="170%">
-          <feDropShadow dx="0" dy="2" stdDeviation="3.5" floodColor="#7a5c10" floodOpacity="0.26" />
+          <feDropShadow dx="0" dy="2" stdDeviation="3.5" floodColor="#5a3e18" floodOpacity="0.42" />
         </filter>
         <filter id="gl">
           <feGaussianBlur stdDeviation="2.2" result="b" />
@@ -436,50 +419,48 @@ function GoldBow() {
         </filter>
       </defs>
 
-      {/* Loop sinistro — leggermente più grande, forma organica */}
+      {/* Loop sinistro */}
       <path
         d="M 82 68 C 72 52 50 20 22 23 C 5 26 -3 48 12 58 C 28 68 64 72 82 68 Z"
         fill="url(#gL)" filter="url(#s)"
       />
-      {/* Crease principale */}
-      <path d="M 80 63 C 67 48 44 26 24 31" stroke="rgba(255,255,255,0.70)" strokeWidth="6" strokeLinecap="round" />
-      {/* Crease secondaria — profondità */}
-      <path d="M 74 57 C 62 45 46 34 32 37" stroke="rgba(255,255,255,0.28)" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M 80 63 C 67 48 44 26 24 31" stroke="rgba(255,248,210,0.85)" strokeWidth="6" strokeLinecap="round" />
+      <path d="M 74 57 C 62 45 46 34 32 37" stroke="rgba(255,240,180,0.32)" strokeWidth="2.5" strokeLinecap="round" />
 
-      {/* Loop destro — leggermente asimmetrico */}
+      {/* Loop destro */}
       <path
         d="M 90 68 C 100 52 120 22 146 26 C 163 29 167 50 153 59 C 138 68 106 71 90 68 Z"
         fill="url(#gR)" filter="url(#s)"
       />
-      <path d="M 92 63 C 105 48 128 28 148 34" stroke="rgba(255,255,255,0.70)" strokeWidth="6" strokeLinecap="round" />
-      <path d="M 98 57 C 110 46 130 36 142 40" stroke="rgba(255,255,255,0.28)" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M 92 63 C 105 48 128 28 148 34" stroke="rgba(255,248,210,0.85)" strokeWidth="6" strokeLinecap="round" />
+      <path d="M 98 57 C 110 46 130 36 142 40" stroke="rgba(255,240,180,0.32)" strokeWidth="2.5" strokeLinecap="round" />
 
-      {/* Coda sinistra — curva naturale */}
+      {/* Coda sinistra */}
       <path d="M 78 78 C 68 92 52 103 34 116" stroke="url(#gT)" strokeWidth="15" strokeLinecap="round" filter="url(#s)" />
-      <path d="M 78 78 C 68 92 52 103 34 116" stroke="rgba(255,255,255,0.55)" strokeWidth="4.5" strokeLinecap="round" />
+      <path d="M 78 78 C 68 92 52 103 34 116" stroke="rgba(255,248,210,0.58)" strokeWidth="4.5" strokeLinecap="round" />
 
-      {/* Coda destra — angolo diverso per naturalezza */}
+      {/* Coda destra */}
       <path d="M 94 78 C 108 90 124 100 142 112" stroke="url(#gT)" strokeWidth="15" strokeLinecap="round" filter="url(#s)" />
-      <path d="M 94 78 C 108 90 124 100 142 112" stroke="rgba(255,255,255,0.55)" strokeWidth="4.5" strokeLinecap="round" />
+      <path d="M 94 78 C 108 90 124 100 142 112" stroke="rgba(255,248,210,0.58)" strokeWidth="4.5" strokeLinecap="round" />
 
-      {/* Nodo centrale — prominente */}
+      {/* Nodo centrale */}
       <ellipse cx="86" cy="68" rx="17" ry="12.5" fill="url(#gK)" filter="url(#s)" />
-      <ellipse cx="86" cy="63" rx="11" ry="7" fill="rgba(255,255,255,0.62)" />
-      <ellipse cx="83" cy="61" rx="4.5" ry="2.8" fill="rgba(255,255,255,0.90)" />
+      <ellipse cx="86" cy="63" rx="11" ry="7" fill="rgba(255,248,210,0.52)" />
+      <ellipse cx="83" cy="61" rx="4.5" ry="2.8" fill="rgba(255,252,210,0.92)" />
 
-      {/* Sparkles — brillantina */}
-      <circle cx="22"  cy="44" r="3.0" fill="#ffffff" opacity="0.96" filter="url(#gl)" />
-      <circle cx="150" cy="42" r="2.5" fill="#ffffff" opacity="0.92" filter="url(#gl)" />
-      <circle cx="44"  cy="18" r="2.2" fill="#ffffff" opacity="0.87" filter="url(#gl)" />
-      <circle cx="118" cy="20" r="2.0" fill="#ffffff" opacity="0.87" filter="url(#gl)" />
-      <circle cx="86"  cy="40" r="1.9" fill="#ffffff" opacity="0.83" filter="url(#gl)" />
-      <circle cx="34"  cy="62" r="1.7" fill="#ffffff" opacity="0.76" />
-      <circle cx="134" cy="60" r="1.7" fill="#ffffff" opacity="0.76" />
-      <circle cx="60"  cy="84" r="1.5" fill="#ffffff" opacity="0.68" />
-      <circle cx="110" cy="82" r="1.5" fill="#ffffff" opacity="0.68" />
-      <circle cx="12"  cy="52" r="1.3" fill="#f0d060" opacity="0.82" filter="url(#gl)" />
-      <circle cx="158" cy="50" r="1.3" fill="#f0d060" opacity="0.82" filter="url(#gl)" />
-      <circle cx="86"  cy="18" r="1.2" fill="#ffffff" opacity="0.72" filter="url(#gl)" />
+      {/* Sparkles */}
+      <circle cx="22"  cy="44" r="3.0" fill="#fde9a8" opacity="0.90" filter="url(#gl)" />
+      <circle cx="150" cy="42" r="2.5" fill="#fde9a8" opacity="0.88" filter="url(#gl)" />
+      <circle cx="44"  cy="18" r="2.2" fill="#f6c453" opacity="0.82" filter="url(#gl)" />
+      <circle cx="118" cy="20" r="2.0" fill="#f6c453" opacity="0.82" filter="url(#gl)" />
+      <circle cx="86"  cy="40" r="1.9" fill="#fde9a8" opacity="0.78" filter="url(#gl)" />
+      <circle cx="34"  cy="62" r="1.7" fill="#e8c98b" opacity="0.72" />
+      <circle cx="134" cy="60" r="1.7" fill="#e8c98b" opacity="0.72" />
+      <circle cx="60"  cy="84" r="1.5" fill="#f0d060" opacity="0.62" />
+      <circle cx="110" cy="82" r="1.5" fill="#f0d060" opacity="0.62" />
+      <circle cx="12"  cy="52" r="1.3" fill="#c3a06a" opacity="0.80" filter="url(#gl)" />
+      <circle cx="158" cy="50" r="1.3" fill="#c3a06a" opacity="0.80" filter="url(#gl)" />
+      <circle cx="86"  cy="18" r="1.2" fill="#fde9a8" opacity="0.68" filter="url(#gl)" />
     </svg>
   );
 }
