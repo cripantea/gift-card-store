@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Gift } from "lucide-react";
+import { Check, ChevronDown, Gift, X } from "lucide-react";
 import { submitGiveaway } from "@/app/giveaway/actions";
-import { GIVEAWAY_KNOWN_SINCE, GIVEAWAY_SOURCES } from "@/lib/giveawayOptions";
+import { GIVEAWAY_KNOWN_SINCE, GIVEAWAY_SOURCES, SERVIZI_GRUPPI } from "@/lib/giveawayOptions";
 
 const inputClass =
   "w-full rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30";
@@ -37,6 +38,174 @@ function Select({
   );
 }
 
+/* ─── Multi-select dropdown ───────────────────────────────────────────── */
+function ServiziSelect({
+  selected,
+  onChange,
+}: {
+  selected: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
+  }, []);
+
+  function toggle(v: string) {
+    onChange(selected.includes(v) ? selected.filter(s => s !== v) : [...selected, v]);
+  }
+  function remove(v: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    onChange(selected.filter(s => s !== v));
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="flex min-h-[48px] w-full items-start gap-2 rounded-xl border border-sand-dark bg-white px-4 py-2.5 text-left transition focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold/30"
+      >
+        <div className="flex flex-1 flex-wrap gap-1.5 py-0.5">
+          {selected.length === 0 ? (
+            <span className="text-sm text-neutral-400 leading-relaxed">Seleziona uno o più servizi…</span>
+          ) : (
+            selected.map(s => (
+              <span
+                key={s}
+                className="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[0.7rem] font-medium"
+                style={{ borderColor: "rgba(164,121,75,0.4)", background: "rgba(164,121,75,0.07)", color: "var(--color-gold)" }}
+              >
+                {s}
+                <button type="button" onClick={e => remove(s, e)} className="opacity-60 hover:opacity-100 transition">
+                  <X size={10} />
+                </button>
+              </span>
+            ))
+          )}
+        </div>
+        <ChevronDown
+          size={16}
+          className="mt-1 shrink-0 text-neutral-400 transition-transform"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-72 overflow-y-auto overscroll-contain rounded-xl border border-sand-dark bg-white shadow-lg"
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+          >
+            {SERVIZI_GRUPPI.map((gruppo, gi) => (
+              <div key={gruppo.label}>
+                <div
+                  className="sticky top-0 px-4 py-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.18em]"
+                  style={{
+                    background: "var(--color-paper-muted)",
+                    color: "var(--color-ink-soft)",
+                    borderTop: gi > 0 ? "1px solid var(--color-sand)" : undefined,
+                  }}
+                >
+                  {gruppo.label}
+                </div>
+                {gruppo.items.map((s, i) => {
+                  const active = selected.includes(s);
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => toggle(s)}
+                      className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition hover:bg-paper-muted"
+                      style={{
+                        borderBottom: i < gruppo.items.length - 1 ? "1px solid var(--color-sand)" : undefined,
+                        color: active ? "var(--color-gold)" : "var(--color-ink)",
+                        fontWeight: active ? 500 : 400,
+                      }}
+                    >
+                      {s}
+                      {active && <Check size={14} className="shrink-0" style={{ color: "var(--color-gold)" }} />}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ─── Date picker premium ────────────────────────────────────────────── */
+const MESI = [
+  "Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno",
+  "Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre",
+];
+const GIORNI = Array.from({ length: 31 }, (_, i) => i + 1);
+const ANNI   = Array.from({ length: 90  }, (_, i) => 2012 - i);
+
+function Sel({
+  value, onChange, placeholder, children,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  children: React.ReactNode;
+}) {
+  const empty = value === "";
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full rounded-xl border border-sand-dark bg-white px-3.5 py-3 pr-8 text-sm outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30"
+        style={{ WebkitAppearance: "none", appearance: "none", color: empty ? "#a3a3a3" : "var(--color-ink)" }}
+      >
+        <option value="" disabled>{placeholder}</option>
+        {children}
+      </select>
+      <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+    </div>
+  );
+}
+
+function DatePickerNascita({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [g, setG] = useState(value ? value.split("-")[2] ?? "" : "");
+  const [m, setM] = useState(value ? value.split("-")[1] ?? "" : "");
+  const [a, setA] = useState(value ? value.split("-")[0] ?? "" : "");
+
+  function emit(giorno: string, mese: string, anno: string) {
+    if (giorno && mese && anno) onChange(`${anno}-${mese}-${giorno.padStart(2, "0")}`);
+    else onChange("");
+  }
+
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      <Sel value={g} placeholder="Giorno" onChange={v => { setG(v); emit(v, m, a); }}>
+        {GIORNI.map(n => <option key={n} value={String(n).padStart(2, "0")}>{n}</option>)}
+      </Sel>
+      <Sel value={m} placeholder="Mese" onChange={v => { setM(v); emit(g, v, a); }}>
+        {MESI.map((nome, i) => (
+          <option key={i} value={String(i + 1).padStart(2, "0")}>{nome}</option>
+        ))}
+      </Sel>
+      <Sel value={a} placeholder="Anno" onChange={v => { setA(v); emit(g, m, v); }}>
+        {ANNI.map(n => <option key={n} value={String(n)}>{n}</option>)}
+      </Sel>
+    </div>
+  );
+}
+
 export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; isOpen: boolean }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -48,6 +217,9 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
   const [source, setSource]           = useState("");
   const [sourceOther, setSourceOther] = useState("");
   const [knownSince, setKnownSince]   = useState("");
+  const [dataNascita, setDataNascita] = useState("");
+  const [servizi, setServizi]         = useState<string[]>([]);
+  const [nota, setNota]               = useState("");
   const [privacy, setPrivacy]         = useState(false);
   const [marketing, setMarketing]     = useState(false);
 
@@ -58,6 +230,8 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
     source !== "" &&
     (source !== "Altro" || sourceOther.trim() !== "") &&
     knownSince !== "" &&
+    dataNascita !== "" &&
+    servizi.length > 0 &&
     privacy;
 
   function handleSubmit(e: React.FormEvent) {
@@ -72,6 +246,9 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
         source,
         sourceOther: source === "Altro" ? sourceOther : undefined,
         knownSince,
+        birthDate: dataNascita,
+        favoriteServices: servizi,
+        note: nota.trim() || undefined,
         marketingConsent: marketing,
         privacyConsent: privacy,
         campaign: campaign ?? undefined,
@@ -146,6 +323,16 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
           </div>
 
           <div className="flex flex-col gap-1.5">
+            <label className={labelClass}>Data di nascita</label>
+            <DatePickerNascita value={dataNascita} onChange={setDataNascita} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass}>Quali sono i tuoi trattamenti preferiti?</label>
+            <ServiziSelect selected={servizi} onChange={setServizi} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
             <label htmlFor="gw-dove" className={labelClass}>Dove ci hai conosciuto?</label>
             <Select id="gw-dove" value={source} onChange={setSource} placeholder="Seleziona…" options={GIVEAWAY_SOURCES} />
             {source === "Altro" && (
@@ -157,6 +344,15 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
           <div className="flex flex-col gap-1.5">
             <label htmlFor="gw-quanto" className={labelClass}>Da quanto ci conosci?</label>
             <Select id="gw-quanto" value={knownSince} onChange={setKnownSince} placeholder="Seleziona…" options={GIVEAWAY_KNOWN_SINCE} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="gw-nota" className={labelClass}>Una domanda, una richiesta, un feedback</label>
+            <textarea
+              id="gw-nota" value={nota} onChange={e => setNota(e.target.value)}
+              placeholder="Scrivici qualcosa — ci fa piacere leggerti." rows={3} maxLength={1000}
+              className={`${inputClass} resize-none`}
+            />
           </div>
 
           <div className="flex flex-col gap-2.5 rounded-xl border border-sand-dark bg-paper-muted px-4 py-3.5">

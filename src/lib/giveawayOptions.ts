@@ -12,9 +12,57 @@ export const GIVEAWAY_SOURCES = [
 ] as const;
 
 export const GIVEAWAY_KNOWN_SINCE = [
-  "È la prima volta",
   "Meno di 1 anno",
   "1-2 anni",
   "2-5 anni",
   "Più di 5 anni",
 ] as const;
+
+/** Servizi reali MAD Vigevano (da listino-prezzi) per "trattamenti preferiti". */
+export const SERVIZI_GRUPPI: { label: string; items: string[] }[] = [
+  {
+    label: "Taglio",
+    items: ["Taglio donna", "Taglio uomo"],
+  },
+  {
+    label: "Piega & Styling",
+    items: ["Piega capelli corti", "Piega capelli lunghi", "Styling"],
+  },
+  {
+    label: "Colorazioni",
+    items: [
+      "Colore organica",
+      "Colore organica + lunghezze",
+      "Gloss color",
+      "Decolorazione",
+    ],
+  },
+  {
+    label: "Schiariture",
+    items: ["Balayage", "Bleach No Bleach", "Airtouch / Hair Touch"],
+  },
+  {
+    label: "Trattamenti",
+    items: [
+      "Ristrutturazione profonda",
+      "Hair Filler",
+      "Detox",
+      "Ossigenoterapia",
+      "Ozonoterapia",
+      "OXY Hair Spa",
+      "Nanoplastia",
+      "Permanente",
+    ],
+  },
+  {
+    label: "Eventi & Shooting",
+    items: [
+      "Preparazione sposa",
+      "Preparazione shooting",
+      "Hair Styling & Art Direction",
+      "Fashion Show & Events",
+    ],
+  },
+];
+
+export const GIVEAWAY_SERVICES: readonly string[] = SERVIZI_GRUPPI.flatMap((g) => g.items);

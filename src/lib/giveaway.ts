@@ -3,7 +3,7 @@ import { z } from "zod";
 import { OrderStatus, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { generateFormattedCardCode, generateSecretToken } from "@/lib/utils/giftCard";
-import { GIVEAWAY_KNOWN_SINCE, GIVEAWAY_SOURCES } from "@/lib/giveawayOptions";
+import { GIVEAWAY_KNOWN_SINCE, GIVEAWAY_SERVICES, GIVEAWAY_SOURCES } from "@/lib/giveawayOptions";
 
 export const GIVEAWAY_PRODUCT_SLUG = "giveaway";
 export const GIVEAWAY_AMOUNT = 50;
@@ -42,6 +42,12 @@ export const giveawaySubmissionSchema = z
     source: z.enum(GIVEAWAY_SOURCES),
     sourceOther: z.string().trim().max(200).optional(),
     knownSince: z.enum(GIVEAWAY_KNOWN_SINCE),
+    birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Indica la data di nascita"),
+    favoriteServices: z
+      .array(z.string().refine((v) => GIVEAWAY_SERVICES.includes(v)))
+      .min(1, "Scegli almeno un trattamento")
+      .max(GIVEAWAY_SERVICES.length),
+    note: z.string().trim().max(1000).optional(),
     marketingConsent: z.boolean(),
     privacyConsent: z.literal(true),
     campaign: z.string().max(100).optional(),
@@ -134,6 +140,9 @@ export async function createGiveawayEntry(
           source: input.source,
           sourceOther: input.source === "Altro" ? input.sourceOther ?? null : null,
           knownSince: input.knownSince,
+          birthDate: new Date(`${input.birthDate}T00:00:00Z`),
+          favoriteServices: input.favoriteServices,
+          note: input.note || null,
           marketingConsent: input.marketingConsent,
           campaign: sanitizeCampaign(input.campaign),
           ipHash,

@@ -193,6 +193,10 @@ model GiveawayEntry {
   source           String
   sourceOther      String?
   knownSince       String
+  birthDate        DateTime? @db.Date
+  // Trattamenti preferiti (valori di SERVIZI_GRUPPI in src/lib/giveawayOptions.ts).
+  favoriteServices Json?
+  note             String?   @db.Text
   marketingConsent Boolean  @default(false)
   // Parametro ?src= del link condiviso (es. "whatsapp"), per sapere da dove arriva.
   campaign         String?

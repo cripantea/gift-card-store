@@ -12,6 +12,9 @@ export interface AdminGiveawayEntry {
   source: string;
   sourceOther: string | null;
   knownSince: string;
+  birthDate: string | null;
+  favoriteServices: string[];
+  note: string | null;
   marketingConsent: boolean;
   campaign: string | null;
   createdAt: string;
@@ -44,6 +47,11 @@ export async function loadGiveawayEntries(): Promise<AdminGiveawayResult> {
       source: e.source,
       sourceOther: e.sourceOther,
       knownSince: e.knownSince,
+      birthDate: e.birthDate ? e.birthDate.toISOString().slice(0, 10) : null,
+      favoriteServices: Array.isArray(e.favoriteServices)
+        ? e.favoriteServices.filter((v): v is string => typeof v === "string")
+        : [],
+      note: e.note,
       marketingConsent: e.marketingConsent,
       campaign: e.campaign,
       createdAt: e.createdAt.toISOString(),

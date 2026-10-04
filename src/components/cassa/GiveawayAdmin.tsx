@@ -11,6 +11,13 @@ import { GiftCardStatus } from "@/generated/prisma/enums";
 
 const dateTime = new Intl.DateTimeFormat("it-IT", { dateStyle: "short", timeStyle: "short" });
 
+/** "1990-05-14" → "14/05/1990" senza passare dal fuso orario. */
+function formatBirthDate(iso: string | null): string {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+
 const SHARE_LINK = `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://shop.madvigevano.it"}/giveaway?src=whatsapp`;
 
 function sourceLabel(e: AdminGiveawayEntry): string {
@@ -63,7 +70,7 @@ export function GiveawayAdmin() {
 
   function handleExportCSV() {
     if (!entries.length) return;
-    const header = ["Data", "Nome", "Cognome", "Telefono", "Dove ci ha conosciuto", "Da quanto ci conosce", "Consenso marketing", "Provenienza link", "Codice gift card", "Stato gift card"];
+    const header = ["Data", "Nome", "Cognome", "Telefono", "Dove ci ha conosciuto", "Da quanto ci conosce", "Data di nascita", "Trattamenti preferiti", "Nota", "Consenso marketing", "Provenienza link", "Codice gift card", "Stato gift card"];
     const rows = entries.map((e) => [
       dateTime.format(new Date(e.createdAt)),
       e.firstName,
@@ -71,6 +78,9 @@ export function GiveawayAdmin() {
       e.phone,
       sourceLabel(e),
       e.knownSince,
+      formatBirthDate(e.birthDate),
+      e.favoriteServices.join(", "),
+      e.note ?? "",
       e.marketingConsent ? "Sì" : "No",
       e.campaign ?? "",
       e.cardCode,
@@ -169,7 +179,7 @@ export function GiveawayAdmin() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line bg-paper-muted/50">
-                {["Nome", "Dove ci ha conosciuto", "Da quanto ci conosce", "Data", "Gift card"].map((h) => (
+                {["Nome", "Dove ci ha conosciuto", "Da quanto ci conosce", "Data", "Dettagli", "Gift card"].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-[0.65rem] font-medium uppercase tracking-[0.15em] text-ink-soft">
                     {h}
                   </th>
@@ -189,6 +199,11 @@ export function GiveawayAdmin() {
                   <td className="px-4 py-3 text-ink">{sourceLabel(e)}</td>
                   <td className="px-4 py-3 text-ink">{e.knownSince}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-ink-soft">{dateTime.format(new Date(e.createdAt))}</td>
+                  <td className="min-w-[14rem] px-4 py-3 text-xs text-ink-soft">
+                    {e.birthDate && <p>Nata/o il {formatBirthDate(e.birthDate)}</p>}
+                    {e.favoriteServices.length > 0 && <p>Preferiti: {e.favoriteServices.join(", ")}</p>}
+                    {e.note && <p className="mt-1 italic text-ink">“{e.note}”</p>}
+                  </td>
                   <td className="px-4 py-3">
                     <p className="font-mono text-xs tracking-wider text-ink-soft">{e.cardCode}</p>
                     <p className="text-[0.65rem] text-gold">{cardLabel(e)}</p>
