@@ -9,6 +9,7 @@ import {
   type AdminGiveawayResult,
 } from "@/app/cassa/giveawayActions";
 import { GiftCardStatus } from "@/generated/prisma/enums";
+import { csvCell } from "@/lib/utils/csv";
 
 const dateTime = new Intl.DateTimeFormat("it-IT", { dateStyle: "short", timeStyle: "short" });
 
@@ -93,7 +94,7 @@ export function GiveawayAdmin() {
       e.cardCode,
       cardLabel(e),
     ]);
-    const csv = [header, ...rows].map((r) => r.map((v) => `"${v.replaceAll('"', '""')}"`).join(",")).join("\n");
+    const csv = [header, ...rows].map((r) => r.map(csvCell).join(",")).join("\n");
     const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

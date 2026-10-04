@@ -18,6 +18,7 @@ import {
   type AdminStats,
 } from "@/app/cassa/actions";
 import { GiftCardStatus } from "@/generated/prisma/enums";
+import { csvCell } from "@/lib/utils/csv";
 
 const currency = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" });
 const dateShort = new Intl.DateTimeFormat("it-IT", { dateStyle: "short" });
@@ -112,7 +113,7 @@ export function AdminDashboard() {
     ]);
 
     const csv = [header, ...rows]
-      .map((r) => r.map((v) => `"${v}"`).join(","))
+      .map((r) => r.map(csvCell).join(","))
       .join("\n");
 
     const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });

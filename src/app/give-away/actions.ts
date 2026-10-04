@@ -63,8 +63,28 @@ export async function submitGiveaway(input: unknown): Promise<SubmitGiveawayResu
   }
 }
 
+// Limite ai tentativi di "Hai già partecipato?" per IP (in memoria), contro chi
+// prova combinazioni email + cellulare a raffica.
+const RECOVER_MAX_ATTEMPTS = 10;
+const RECOVER_WINDOW_MS = 15 * 60 * 1000;
+const recoverAttempts = new Map<string, number[]>();
+
+function isRecoverRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const recent = (recoverAttempts.get(ip) ?? []).filter((t) => now - t < RECOVER_WINDOW_MS);
+  recent.push(now);
+  recoverAttempts.set(ip, recent);
+  return recent.length > RECOVER_MAX_ATTEMPTS;
+}
+
 /** "Hai già partecipato?": ritrova la partecipazione da email + cellulare (es. da un altro telefono). */
 export async function recoverGiveaway(email: string, phone: string): Promise<SubmitGiveawayResult> {
+  const headerStore = await headers();
+  const ip = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ?? headerStore.get("x-real-ip") ?? "unknown";
+  if (isRecoverRateLimited(ip)) {
+    return { ok: false, error: "Troppi tentativi. Riprova tra qualche minuto." };
+  }
+
   try {
     const entry = await findEntryByEmailAndPhone(email, phone);
     if (!entry) {
