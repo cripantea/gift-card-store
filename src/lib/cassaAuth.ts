@@ -4,9 +4,14 @@ import { createHmac, timingSafeEqual } from "crypto";
 const SESSION_COOKIE_NAME = "cassa_session";
 const SESSION_DURATION_MS = 12 * 60 * 60 * 1000;
 
+/**
+ * Chiave di firma della sessione. NON deriva solo dal PIN: con 4 cifre un
+ * attaccante potrebbe provare le 10.000 chiavi forgiando cookie senza mai
+ * passare dal blocco dei tentativi. Cambiare il PIN invalida le sessioni.
+ */
 function getSessionSecret(): string {
-  const pin = process.env.CASSA_PIN ?? "1234";
-  return `mad-vigevano-cassa:${pin}`;
+  const secret = process.env.CASSA_SESSION_SECRET ?? process.env.DATABASE_URL ?? "";
+  return `mad-vigevano-cassa:${secret}:${process.env.CASSA_PIN ?? ""}`;
 }
 
 function sign(expiresAt: number): string {
@@ -37,9 +42,45 @@ function isValidSessionToken(token: string): boolean {
   return timingSafeEqual(expected, provided);
 }
 
+// ─── Blocco dei tentativi (in memoria: si azzera al riavvio del processo) ─────
+const MAX_FAILURES_PER_IP = 5;
+const MAX_FAILURES_GLOBAL = 30;
+const FAILURE_WINDOW_MS = 15 * 60 * 1000;
+const failuresByIp = new Map<string, number[]>();
+let globalFailures: number[] = [];
+
+function recent(times: number[], now: number): number[] {
+  return times.filter((t) => now - t < FAILURE_WINDOW_MS);
+}
+
+/** Minuti di attesa se l'IP (o l'insieme dei tentativi) ha sbagliato troppe volte, altrimenti 0. */
+export function cassaLockoutMinutes(ip: string): number {
+  const now = Date.now();
+  globalFailures = recent(globalFailures, now);
+  const ipFailures = recent(failuresByIp.get(ip) ?? [], now);
+  failuresByIp.set(ip, ipFailures);
+
+  const blockedBy =
+    ipFailures.length >= MAX_FAILURES_PER_IP ? ipFailures : globalFailures.length >= MAX_FAILURES_GLOBAL ? globalFailures : null;
+  if (!blockedBy) return 0;
+  return Math.max(1, Math.ceil((FAILURE_WINDOW_MS - (now - blockedBy[0])) / 60_000));
+}
+
+export function registerCassaFailure(ip: string): void {
+  const now = Date.now();
+  failuresByIp.set(ip, [...recent(failuresByIp.get(ip) ?? [], now), now]);
+  globalFailures = [...recent(globalFailures, now), now];
+}
+
+export function clearCassaFailures(ip: string): void {
+  failuresByIp.delete(ip);
+}
+
 export function isValidCassaPin(pin: string): boolean {
-  const expectedPin = process.env.CASSA_PIN ?? "1234";
-  return pin.length === 4 && pin === expectedPin;
+  // Nessun PIN di default: se CASSA_PIN non è impostato la cassa resta chiusa.
+  const expectedPin = process.env.CASSA_PIN;
+  if (!expectedPin || pin.length !== expectedPin.length) return false;
+  return timingSafeEqual(Buffer.from(pin), Buffer.from(expectedPin));
 }
 
 export async function createCassaSession(): Promise<void> {

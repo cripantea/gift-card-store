@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Ma è solo per te — MAD Vigevano",
-  description: "Questa volta abbiamo pensato a te: una Gift Card da 50 € riservata ai nostri clienti.",
+  description: "Solo per te, che sei già nostra cliente: una Gift Card da 50 € per migliorare la tua esperienza dal tuo parrucchiere di fiducia.",
 };
 
 interface GiveawayPageProps {

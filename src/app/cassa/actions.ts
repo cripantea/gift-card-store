@@ -2,11 +2,15 @@
 
 import { GiftCardStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { headers } from "next/headers";
 import {
+  cassaLockoutMinutes,
+  clearCassaFailures,
   createCassaSession,
   clearCassaSession,
   isCassaSessionValid,
   isValidCassaPin,
+  registerCassaFailure,
 } from "@/lib/cassaAuth";
 import { formatCardCodeGroups, isCompleteCardCode } from "@/lib/utils/cardCode";
 
@@ -104,12 +108,22 @@ export async function verifyCassaPin(
   _prevState: PinFormState,
   formData: FormData,
 ): Promise<PinFormState> {
+  const headerStore = await headers();
+  const ip = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ?? headerStore.get("x-real-ip") ?? "unknown";
+
+  const waitMinutes = cassaLockoutMinutes(ip);
+  if (waitMinutes > 0) {
+    return { error: `Troppi tentativi sbagliati. Riprova tra ${waitMinutes} minuti.` };
+  }
+
   const pin = String(formData.get("pin") ?? "").trim();
 
   if (!isValidCassaPin(pin)) {
+    registerCassaFailure(ip);
     return { error: "PIN non valido. Riprova." };
   }
 
+  clearCassaFailures(ip);
   await createCassaSession();
   return {};
 }

@@ -62,7 +62,7 @@ export default async function GiftPage({ params }: GiftPageProps) {
           // CardScene provides idle float + parallax + shimmer after reveal.
           <UnwrappingExperience
             secretToken={giftCard.secretToken}
-            subtitle={isGiveaway ? "Questa volta abbiamo pensato noi a te: una Gift Card MAD da 50 €." : undefined}
+            subtitle={isGiveaway ? "Solo per te, che sei già nostra cliente: una Gift Card MAD da 50 €." : undefined}
             revealMessage={isGiveaway ? GIVEAWAY_THANK_YOU : undefined}
           >
             <CardScene skipEntrance>{card}</CardScene>

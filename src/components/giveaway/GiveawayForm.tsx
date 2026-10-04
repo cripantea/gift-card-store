@@ -318,16 +318,9 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
           Ma è solo per te.
         </h1>
         <div className="flex flex-col gap-3 text-sm leading-relaxed text-ink-soft">
-          <p className="font-display text-lg italic text-ink">
-            Questa volta abbiamo pensato a te.
-          </p>
-          <p>
-            Ogni volta che scegli MAD ci regali qualcosa di prezioso: la tua fiducia.
-            Oggi voglio ricambiare.
-          </p>
-          <p>
-            In occasione del lancio della nuova Gift Card sul nostro sito ho riservato
-            una <span className="font-semibold text-ink">Gift Card da 50 €</span> proprio per te.
+          <p className="font-display text-lg italic leading-snug text-ink">
+            Solo per te, che sei già nostra cliente, abbiamo pensato a questo regalo per migliorare
+            la tua esperienza dal tuo parrucchiere di fiducia.
           </p>
         </div>
         <a
