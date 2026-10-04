@@ -1,4 +1,3 @@
-const WEBHOOK_URL = "https://crm.fusionsoft.it/api/webhooks/incoming/cmuaho41l000201m8x6b4433t";
 
 interface FusionCRMPayload {
   buyer: {
@@ -75,7 +74,13 @@ export interface NotifyFusionCRMInput {
 }
 
 export function notifyFusionCRM(input: NotifyFusionCRMInput): void {
-  const webhookUrl = process.env.FUSION_CRM_WEBHOOK_URL ?? WEBHOOK_URL;
+  // L'URL contiene il token segreto dell'endpoint CRM: solo da .env, mai nel
+  // codice (il repository è pubblico).
+  const webhookUrl = process.env.FUSION_CRM_WEBHOOK_URL;
+  if (!webhookUrl) {
+    console.error("[FusionCRM] FUSION_CRM_WEBHOOK_URL non impostato: ordine non inviato al CRM");
+    return;
+  }
 
   const payload: FusionCRMPayload = {
     buyer: {
