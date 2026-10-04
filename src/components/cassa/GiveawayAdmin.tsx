@@ -18,7 +18,7 @@ function formatBirthDate(iso: string | null): string {
   return `${d}/${m}/${y}`;
 }
 
-const SHARE_LINK = `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://shop.madvigevano.it"}/giveaway?src=whatsapp`;
+const SHARE_LINK = `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://shop.madvigevano.it"}/give-away?src=whatsapp`;
 
 function sourceLabel(e: AdminGiveawayEntry): string {
   return e.source === "Altro" && e.sourceOther ? `Altro: ${e.sourceOther}` : e.source;

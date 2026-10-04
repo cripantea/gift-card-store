@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Check, ChevronDown, Gift, X } from "lucide-react";
-import { submitGiveaway } from "@/app/giveaway/actions";
+import { submitGiveaway } from "@/app/give-away/actions";
 import { GIVEAWAY_KNOWN_SINCE, GIVEAWAY_SOURCES, SERVIZI_GRUPPI } from "@/lib/giveawayOptions";
 
 const inputClass =

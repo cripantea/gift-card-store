@@ -182,7 +182,7 @@ model DiscountCode {
   @@index([active, startsAt, endsAt])
 }
 
-// Risposte al Give Away (/giveaway): ogni partecipante riceve una gift card
+// Risposte al Give Away (/give-away): ogni partecipante riceve una gift card
 // reale da 50 €, una sola per numero di telefono.
 model GiveawayEntry {
   id               String   @id @default(uuid())
