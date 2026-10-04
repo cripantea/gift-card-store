@@ -2,7 +2,16 @@ import Image from "next/image";
 import { MAD_LOGO_URL } from "@/lib/brand";
 import { GiftCardCheckout } from "@/components/checkout/GiftCardCheckout";
 
-export default function Home() {
+interface HomeProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+function firstParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function Home({ searchParams }: HomeProps) {
+  const params = await searchParams;
   return (
     <div className="flex min-h-screen flex-col bg-paper">
       <section className="border-b border-line/60">
@@ -154,7 +163,11 @@ export default function Home() {
       </section>
 
       <main className="flex-1 py-12 sm:py-16">
-        <GiftCardCheckout />
+        <GiftCardCheckout
+          initialProductSlug={firstParam(params.prodotto)}
+          initialCustomAmount={firstParam(params.importo)}
+          initialDiscountCode={firstParam(params.codice)}
+        />
       </main>
 
       <footer className="border-t border-line/60 bg-paper">

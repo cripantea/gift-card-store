@@ -80,6 +80,8 @@ export function AdminDashboard() {
     const header = [
       "Codice",
       "Importo",
+      "Pagato",
+      "Codice sconto",
       "Stato",
       "Destinatario",
       "Email destinatario",
@@ -95,6 +97,8 @@ export function AdminDashboard() {
     const rows = giftCards.map((gc) => [
       gc.cardCode,
       gc.amount.toFixed(2),
+      gc.amountPaid.toFixed(2),
+      gc.discountCode ?? "",
       STATUS_LABEL[gc.status],
       `${gc.recipientFirstName} ${gc.recipientLastName}`.trim(),
       gc.recipientPhone,
@@ -277,6 +281,11 @@ export function AdminDashboard() {
                   </td>
                   <td className="px-4 py-3 text-right font-semibold text-ink">
                     {currency.format(gc.amount)}
+                    {gc.discountCode && (
+                      <p className="text-[0.65rem] font-normal text-gold">
+                        {gc.discountCode} · pagati {currency.format(gc.amountPaid)}
+                      </p>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-col gap-1">

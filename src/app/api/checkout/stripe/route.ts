@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { checkoutRequestSchema } from "@/lib/validation/checkout";
+import { quoteCheckout } from "@/lib/services/discountService";
 
 export const runtime = "nodejs";
 
@@ -24,7 +25,14 @@ export async function POST(
     return NextResponse.json({ error: "Payload di checkout non valido." }, { status: 400 });
   }
 
-  const { buyer, recipient, amount, scheduledAt } = parsed.data;
+  const { buyer, recipient, scheduledAt } = parsed.data;
+
+  const quoteResult = await quoteCheckout(parsed.data);
+  if (!quoteResult.ok) {
+    return NextResponse.json({ error: quoteResult.error }, { status: 400 });
+  }
+  const { quote } = quoteResult;
+  const amount = quote.total;
 
   const metadata: Stripe.MetadataParam = {
     buyerFirstName: buyer.firstName,
@@ -36,6 +44,11 @@ export async function POST(
     customMessage: recipient.customMessage ?? "",
     amount: amount.toString(),
     scheduledAt: scheduledAt ?? "",
+    productSlug: quote.product.slug,
+    faceValue: quote.faceValue.toString(),
+    discountAmount: quote.discountAmount.toString(),
+    discountCodeId: quote.discount?.id ?? "",
+    discountCode: quote.discount?.code ?? "",
   };
 
   try {
@@ -48,7 +61,10 @@ export async function POST(
             currency: "eur",
             unit_amount: Math.round(amount * 100),
             product_data: {
-              name: `Gift Card per ${recipient.recipientFirstName} ${recipient.recipientLastName}`,
+              name: `${quote.product.type === "FIXED" ? quote.product.name : `Gift Card ${quote.faceValue} €`} per ${recipient.recipientFirstName} ${recipient.recipientLastName}`,
+              ...(quote.discount
+                ? { description: `Codice ${quote.discount.code}: -${quote.discountAmount.toFixed(2)} € sul valore di ${quote.faceValue.toFixed(2)} €` }
+                : {}),
             },
           },
         },

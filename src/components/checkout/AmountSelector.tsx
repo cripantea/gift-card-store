@@ -1,18 +1,27 @@
 import { Check } from "lucide-react";
+import {
+  CUSTOM_PRODUCT_SLUG,
+  GIFT_CARD_PRODUCTS,
+  findGiftCardProduct,
+  type FixedGiftCardProduct,
+} from "@/lib/giftCardProducts";
 
-export const GIFT_CARD_DENOMINATIONS = [0.10, 50, 100, 150, 200] as const;
+const FIXED_PRODUCTS = GIFT_CARD_PRODUCTS.filter(
+  (p): p is FixedGiftCardProduct => p.type === "FIXED",
+);
 
-export type GiftCardDenomination = (typeof GIFT_CARD_DENOMINATIONS)[number];
-
-export const CUSTOM_AMOUNT_MIN = 50;
+const customProduct = findGiftCardProduct(CUSTOM_PRODUCT_SLUG);
+export const CUSTOM_AMOUNT_MIN = customProduct?.type === "CUSTOM" ? customProduct.min : 50;
+export const CUSTOM_AMOUNT_MAX = customProduct?.type === "CUSTOM" ? customProduct.max : 1000;
 
 interface AmountSelectorProps {
-  selected: GiftCardDenomination | null;
+  selected: string | null;
   isCustom: boolean;
   customAmount: string;
-  onSelectDenomination: (value: GiftCardDenomination) => void;
+  onSelectDenomination: (slug: string) => void;
   onSelectCustom: () => void;
   onCustomAmountChange: (value: string) => void;
+  onCustomAmountBlur?: () => void;
 }
 
 export function AmountSelector({
@@ -22,6 +31,7 @@ export function AmountSelector({
   onSelectDenomination,
   onSelectCustom,
   onCustomAmountChange,
+  onCustomAmountBlur,
 }: AmountSelectorProps) {
   return (
     <fieldset>
@@ -33,13 +43,13 @@ export function AmountSelector({
       </p>
 
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {GIFT_CARD_DENOMINATIONS.map((value) => {
-          const isSelected = !isCustom && selected === value;
+        {FIXED_PRODUCTS.map(({ slug, value }) => {
+          const isSelected = !isCustom && selected === slug;
           return (
             <button
-              key={value}
+              key={slug}
               type="button"
-              onClick={() => onSelectDenomination(value)}
+              onClick={() => onSelectDenomination(slug)}
               aria-pressed={isSelected}
               className={`relative flex h-24 flex-col items-center justify-center gap-1 rounded-2xl border text-lg font-medium transition-all ${
                 isSelected
@@ -75,7 +85,7 @@ export function AmountSelector({
       >
         <span className="font-medium">Importo personalizzato</span>
         <span className={`text-sm ${isCustom ? "text-sand" : "text-ink-soft/70"}`}>
-          minimo {CUSTOM_AMOUNT_MIN}€
+          da {CUSTOM_AMOUNT_MIN}€ a {CUSTOM_AMOUNT_MAX}€
         </span>
       </button>
 
@@ -90,10 +100,12 @@ export function AmountSelector({
               type="number"
               inputMode="decimal"
               min={CUSTOM_AMOUNT_MIN}
+              max={CUSTOM_AMOUNT_MAX}
               step={1}
               placeholder="Es. 75"
               value={customAmount}
               onChange={(event) => onCustomAmountChange(event.target.value)}
+              onBlur={onCustomAmountBlur}
               className="w-full bg-transparent text-lg font-medium text-ink outline-none placeholder:text-ink-soft/40"
             />
             <span className="text-lg font-medium text-ink-soft">€</span>

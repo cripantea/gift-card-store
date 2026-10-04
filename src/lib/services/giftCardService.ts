@@ -12,6 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { generateFormattedCardCode, generateSecretToken } from "@/lib/utils/giftCard";
 import { generateOrderNumber } from "@/lib/utils/order";
 import { notifyFusionCRM } from "@/lib/fusionCrm";
+import { getProductName } from "@/lib/giftCardProducts";
 const GIFT_CARD_VALIDITY_MONTHS = 12;
 const ORDER_NUMBER_MAX_ATTEMPTS = 5;
 
@@ -33,7 +34,12 @@ export interface FulfillOrderAndCreateGiftCardInput {
   paymentProvider: PaymentProvider;
   transactionId: string;
   recipient: FulfillOrderRecipient;
+  /** Importo pagato. */
   amount: number;
+  /** Valore della gift card; se assente coincide con l'importo pagato. */
+  faceValue?: number;
+  productSlug?: string | null;
+  discount?: { id: string | null; code: string; amount: number } | null;
   scheduledAt?: Date | null;
 }
 
@@ -47,6 +53,9 @@ export interface FulfillOrderAndCreateGiftCardResult {
 export async function fulfillOrderAndCreateGiftCard(
   input: FulfillOrderAndCreateGiftCardInput,
 ): Promise<FulfillOrderAndCreateGiftCardResult> {
+  const faceValue = input.faceValue ?? input.amount;
+  const discountAmount = input.discount?.amount ?? 0;
+
   const result = await prisma.$transaction(async (tx) => {
     const customer = await tx.customer.upsert({
       where: { phone: input.buyer.phone },
@@ -61,9 +70,25 @@ export async function fulfillOrderAndCreateGiftCard(
       },
     });
 
+    // Il cliente ha già pagato: l'utilizzo si registra anche se nel frattempo il
+    // codice è stato esaurito o disattivato. Se è stato eliminato resta solo la copia testuale.
+    let discountCodeId: string | null = null;
+    if (input.discount?.id) {
+      const { count } = await tx.discountCode.updateMany({
+        where: { id: input.discount.id },
+        data: { usedCount: { increment: 1 } },
+      });
+      discountCodeId = count > 0 ? input.discount.id : null;
+    }
+
     const order = await createOrderWithUniqueNumber(tx, {
       customerId: customer.id,
       amount: input.amount,
+      productSlug: input.productSlug ?? null,
+      faceValue,
+      discountAmount,
+      discountCodeId,
+      discountCodeText: input.discount?.code ?? null,
     });
 
     const payment = await tx.payment.create({
@@ -90,7 +115,7 @@ export async function fulfillOrderAndCreateGiftCard(
         recipientLastName: input.recipient.recipientLastName,
         recipientPhone: input.recipient.recipientPhone,
         customMessage: input.recipient.customMessage ?? null,
-        amount: input.amount,
+        amount: faceValue,
         expiresAt,
         scheduledAt: input.scheduledAt ?? null,
         emailSentAt: isScheduled ? null : new Date(), // marks whatsapp delivery as "queued"
@@ -112,13 +137,18 @@ export async function fulfillOrderAndCreateGiftCard(
       phone:     input.recipient.recipientPhone,
     },
     order: {
-      id:    result.order.id,
-      total: input.amount,
+      id:             result.order.id,
+      number:         result.order.orderNumber,
+      total:          input.amount,
+      subtotal:       faceValue,
+      discountAmount,
+      discountCode:   input.discount?.code ?? null,
+      product:        input.productSlug ? getProductName(input.productSlug) : `Gift Card ${faceValue} €`,
     },
     giftCard: {
       code:    result.giftCard.cardCode,
       url:     `${process.env.NEXT_PUBLIC_BASE_URL}/gift/${result.giftCard.secretToken}`,
-      amount:  input.amount,
+      amount:  faceValue,
       message: input.recipient.customMessage ?? "",
     },
   });
@@ -128,7 +158,15 @@ export async function fulfillOrderAndCreateGiftCard(
 
 async function createOrderWithUniqueNumber(
   tx: Prisma.TransactionClient,
-  data: { customerId: string; amount: number },
+  data: {
+    customerId: string;
+    amount: number;
+    productSlug: string | null;
+    faceValue: number;
+    discountAmount: number;
+    discountCodeId: string | null;
+    discountCodeText: string | null;
+  },
 ): Promise<Order> {
   for (let attempt = 1; attempt <= ORDER_NUMBER_MAX_ATTEMPTS; attempt++) {
     try {
@@ -137,6 +175,11 @@ async function createOrderWithUniqueNumber(
           customerId: data.customerId,
           orderNumber: generateOrderNumber(),
           totalAmount: data.amount,
+          productSlug: data.productSlug,
+          faceValue: data.faceValue,
+          discountAmount: data.discountAmount,
+          discountCodeId: data.discountCodeId,
+          discountCodeText: data.discountCodeText,
           status: OrderStatus.PAID,
         },
       });

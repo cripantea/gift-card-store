@@ -12,7 +12,10 @@ export const checkoutRequestSchema = z.object({
     recipientPhone: z.string().trim().min(7).max(20),
     customMessage: z.string().trim().max(300).optional(),
   }),
-  amount: z.number().min(0.10).max(10_000),
+  productSlug: z.string().trim().min(1).max(40),
+  // Solo per il prodotto a importo libero.
+  customAmount: z.number().positive().max(10_000).optional(),
+  discountCode: z.string().trim().max(40).optional(),
   scheduledAt: z.string().datetime().optional(),
 });
 
@@ -28,7 +31,21 @@ export const stripeCheckoutMetadataSchema = z.object({
   customMessage: z.string().optional(),
   amount: z.string().min(1),
   scheduledAt: z.string().optional(),
+  // Assenti nelle sessioni create prima dei codici sconto.
+  productSlug: z.string().optional(),
+  faceValue: z.string().optional(),
+  discountAmount: z.string().optional(),
+  discountCodeId: z.string().optional(),
+  discountCode: z.string().optional(),
 });
+
+export const discountValidateRequestSchema = z.object({
+  productSlug: z.string().trim().min(1).max(40),
+  customAmount: z.number().positive().max(10_000).optional(),
+  discountCode: z.string().trim().min(1).max(40),
+});
+
+export type DiscountValidateRequest = z.infer<typeof discountValidateRequestSchema>;
 
 export type StripeCheckoutMetadata = z.infer<typeof stripeCheckoutMetadataSchema>;
 

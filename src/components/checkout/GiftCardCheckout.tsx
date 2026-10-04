@@ -1,17 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, Loader2, ShieldCheck } from "lucide-react";
-import {
-  AmountSelector,
-  CUSTOM_AMOUNT_MIN,
-  type GiftCardDenomination,
-} from "./AmountSelector";
+import { AlertCircle, Loader2, ShieldCheck, Tag, X } from "lucide-react";
+import { AmountSelector, CUSTOM_AMOUNT_MAX, CUSTOM_AMOUNT_MIN } from "./AmountSelector";
 import { GiftDetailsForm, type GiftMode, type DeliveryTarget, type BuyerFields, type RecipientFields } from "./GiftDetailsForm";
 import { PayPalCheckoutButton } from "./PayPalCheckoutButton";
 import { checkoutRequestSchema, type CheckoutRequest } from "@/lib/validation/checkout";
+import {
+  CUSTOM_PRODUCT_SLUG,
+  DEFAULT_PRODUCT_SLUG,
+  findGiftCardProduct,
+  resolveFaceValue,
+} from "@/lib/giftCardProducts";
 
 interface StripeCheckoutResponse {
   sessionId: string;
@@ -22,6 +24,30 @@ interface ApiErrorResponse {
   error: string;
 }
 
+interface DiscountValidateResponse {
+  code: string;
+  faceValue: number;
+  discountAmount: number;
+  total: number;
+}
+
+interface AppliedDiscount extends DiscountValidateResponse {
+  productSlug: string;
+}
+
+export interface GiftCardCheckoutProps {
+  /** Da ?prodotto= (link del sito vetrina). */
+  initialProductSlug?: string;
+  /** Da ?importo= per il prodotto a importo libero. */
+  initialCustomAmount?: string;
+  /** Da ?codice= (campagne WhatsApp/Instagram e banner promo). */
+  initialDiscountCode?: string;
+}
+
+function formatEuro(value: number): string {
+  return `${value.toFixed(2).replace(".", ",")} €`;
+}
+
 function fadeUp(delay: number) {
   return {
     initial: { opacity: 0, y: 16 },
@@ -30,13 +56,26 @@ function fadeUp(delay: number) {
   };
 }
 
-export function GiftCardCheckout() {
+export function GiftCardCheckout({
+  initialProductSlug,
+  initialCustomAmount,
+  initialDiscountCode,
+}: GiftCardCheckoutProps = {}) {
   const router = useRouter();
 
-  const [selectedDenomination, setSelectedDenomination] =
-    useState<GiftCardDenomination | null>(50);
-  const [isCustomAmount, setIsCustomAmount] = useState(false);
-  const [customAmount, setCustomAmount] = useState("");
+  const initialProduct = findGiftCardProduct(initialProductSlug);
+  const [selectedSlug, setSelectedSlug] = useState<string>(
+    initialProduct && initialProduct.type === "FIXED" ? initialProduct.slug : DEFAULT_PRODUCT_SLUG,
+  );
+  const [isCustomAmount, setIsCustomAmount] = useState(initialProduct?.type === "CUSTOM");
+  const [customAmount, setCustomAmount] = useState(
+    initialProduct?.type === "CUSTOM" ? initialCustomAmount ?? "" : "",
+  );
+
+  const [codeInput, setCodeInput] = useState(initialDiscountCode?.toUpperCase() ?? "");
+  const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null);
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [isApplyingCode, setIsApplyingCode] = useState(false);
 
   const [giftMode, setGiftMode] = useState<GiftMode>("self");
   const [deliveryTarget, setDeliveryTarget] = useState<DeliveryTarget>("self");
@@ -62,7 +101,70 @@ export function GiftCardCheckout() {
 
   const [scheduledAt, setScheduledAt] = useState("");
 
-  const amount = isCustomAmount ? Number(customAmount) : selectedDenomination ?? 0;
+  const productSlug = isCustomAmount ? CUSTOM_PRODUCT_SLUG : selectedSlug;
+  const product = findGiftCardProduct(productSlug);
+  const customAmountValue = isCustomAmount && customAmount !== "" ? Number(customAmount) : undefined;
+  const faceValue = product ? resolveFaceValue(product, customAmountValue) : null;
+  const amount = faceValue ?? 0;
+
+  // Lo sconto vale solo per il prodotto e l'importo con cui è stato verificato.
+  const activeDiscount =
+    appliedDiscount &&
+    appliedDiscount.productSlug === productSlug &&
+    appliedDiscount.faceValue === faceValue
+      ? appliedDiscount
+      : null;
+  const totalToPay = activeDiscount ? activeDiscount.total : amount;
+
+  async function applyDiscountCode(
+    code: string,
+    target: { productSlug: string; customAmount?: number },
+  ): Promise<void> {
+    const trimmed = code.trim().toUpperCase();
+    if (!trimmed) return;
+    setIsApplyingCode(true);
+    setCodeError(null);
+    try {
+      const response = await fetch("/api/discount/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...target, discountCode: trimmed }),
+      });
+      const json: DiscountValidateResponse | ApiErrorResponse = await response.json();
+      if (!response.ok || !("total" in json)) {
+        setAppliedDiscount(null);
+        setCodeError("error" in json ? json.error : "Codice non valido.");
+        return;
+      }
+      setAppliedDiscount({ ...json, productSlug: target.productSlug });
+    } catch {
+      setCodeError("Impossibile verificare il codice. Riprova.");
+    } finally {
+      setIsApplyingCode(false);
+    }
+  }
+
+  function reapplyDiscount(target: { productSlug: string; customAmount?: number }) {
+    if (appliedDiscount) void applyDiscountCode(appliedDiscount.code, target);
+  }
+
+  function removeDiscount() {
+    setAppliedDiscount(null);
+    setCodeInput("");
+    setCodeError(null);
+  }
+
+  // Codice arrivato dal link (?codice=): verificato una sola volta all'apertura.
+  const initialCodeChecked = useRef(false);
+  useEffect(() => {
+    if (initialCodeChecked.current || !initialDiscountCode || faceValue == null) return;
+    initialCodeChecked.current = true;
+    void applyDiscountCode(initialDiscountCode, {
+      productSlug,
+      customAmount: isCustomAmount ? faceValue : undefined,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [faceValue]);
 
   const scheduledAtISO = scheduledAt
     ? new Date(scheduledAt).toISOString()
@@ -83,25 +185,41 @@ export function GiftCardCheckout() {
           ...effectiveRecipient,
           customMessage: message.trim() ? message : undefined,
         },
-        amount,
+        productSlug,
+        customAmount: isCustomAmount ? customAmountValue : undefined,
+        discountCode: activeDiscount?.code,
         scheduledAt: scheduledAtISO,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [buyer, giftMode, deliveryTarget, recipient, message, amount, scheduledAtISO],
+    [buyer, giftMode, deliveryTarget, recipient, message, productSlug, customAmountValue, activeDiscount, scheduledAtISO],
   );
 
-  const payload: CheckoutRequest | null = validation.success ? validation.data : null;
+  const payload: CheckoutRequest | null =
+    validation.success && faceValue != null ? validation.data : null;
   const canPurchase = !!payload && privacyAccepted && termsAccepted;
 
-  function handleSelectDenomination(value: GiftCardDenomination) {
-    setSelectedDenomination(value);
+  function handleSelectDenomination(slug: string) {
+    setSelectedSlug(slug);
     setIsCustomAmount(false);
     setFormError(null);
+    reapplyDiscount({ productSlug: slug });
   }
 
   function handleSelectCustom() {
     setIsCustomAmount(true);
     setFormError(null);
+    const value = customAmount !== "" ? Number(customAmount) : undefined;
+    const custom = findGiftCardProduct(CUSTOM_PRODUCT_SLUG);
+    if (custom && resolveFaceValue(custom, value) != null) {
+      reapplyDiscount({ productSlug: CUSTOM_PRODUCT_SLUG, customAmount: value });
+    }
+  }
+
+  function handleCustomAmountBlur() {
+    const custom = findGiftCardProduct(CUSTOM_PRODUCT_SLUG);
+    if (custom && customAmountValue != null && resolveFaceValue(custom, customAmountValue) != null) {
+      reapplyDiscount({ productSlug: CUSTOM_PRODUCT_SLUG, customAmount: customAmountValue });
+    }
   }
 
   async function handleStripeCheckout() {
@@ -143,7 +261,9 @@ export function GiftCardCheckout() {
   }
 
   const showCustomAmountHint =
-    isCustomAmount && customAmount !== "" && Number(customAmount) < CUSTOM_AMOUNT_MIN;
+    isCustomAmount &&
+    customAmount !== "" &&
+    (Number(customAmount) < CUSTOM_AMOUNT_MIN || Number(customAmount) > CUSTOM_AMOUNT_MAX);
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-24 sm:px-6">
@@ -155,7 +275,7 @@ export function GiftCardCheckout() {
       >
         <motion.div {...fadeUp(0)}>
           <AmountSelector
-            selected={isCustomAmount ? null : selectedDenomination}
+            selected={isCustomAmount ? null : selectedSlug}
             isCustom={isCustomAmount}
             customAmount={customAmount}
             onSelectDenomination={handleSelectDenomination}
@@ -164,6 +284,7 @@ export function GiftCardCheckout() {
               setCustomAmount(value);
               setFormError(null);
             }}
+            onCustomAmountBlur={handleCustomAmountBlur}
           />
         </motion.div>
 
@@ -175,7 +296,7 @@ export function GiftCardCheckout() {
               exit={{ opacity: 0, height: 0 }}
               className="-mt-6 text-sm text-ink-soft/70"
             >
-              L&apos;importo personalizzato minimo è {CUSTOM_AMOUNT_MIN}€.
+              L&apos;importo personalizzato va da {CUSTOM_AMOUNT_MIN}€ a {CUSTOM_AMOUNT_MAX}€.
             </motion.p>
           )}
         </AnimatePresence>
@@ -200,6 +321,76 @@ export function GiftCardCheckout() {
         <hr className="border-line" />
 
         <motion.div {...fadeUp(0.28)} className="flex flex-col gap-5">
+          {/* Codice sconto */}
+          <div className="rounded-2xl border border-line bg-paper px-5 py-4">
+            <label
+              htmlFor="discount-code"
+              className="mb-2 flex items-center gap-2 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-ink-soft"
+            >
+              <Tag className="h-3.5 w-3.5 text-gold" />
+              Hai un codice sconto?
+            </label>
+            {activeDiscount ? (
+              <div className="flex items-center justify-between rounded-xl border border-gold/40 bg-gold/5 px-4 py-3 text-sm">
+                <span>
+                  <span className="font-mono font-semibold tracking-wider text-ink">{activeDiscount.code}</span>
+                  <span className="ml-2 text-ink-soft">applicato: −{formatEuro(activeDiscount.discountAmount)}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={removeDiscount}
+                  className="flex items-center gap-1 text-xs text-ink-soft hover:text-ink"
+                  aria-label="Rimuovi codice sconto"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Rimuovi
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  id="discount-code"
+                  type="text"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  placeholder="Es. MAD10"
+                  value={codeInput}
+                  onChange={(e) => {
+                    setCodeInput(e.target.value.toUpperCase());
+                    setCodeError(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (faceValue != null) {
+                        void applyDiscountCode(codeInput, {
+                          productSlug,
+                          customAmount: isCustomAmount ? faceValue : undefined,
+                        });
+                      }
+                    }
+                  }}
+                  className="min-w-0 flex-1 rounded-xl border border-line bg-paper px-4 py-2.5 font-mono text-sm uppercase tracking-wider text-ink outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-ink-soft/40 focus:border-gold"
+                />
+                <button
+                  type="button"
+                  disabled={!codeInput.trim() || faceValue == null || isApplyingCode}
+                  onClick={() =>
+                    void applyDiscountCode(codeInput, {
+                      productSlug,
+                      customAmount: isCustomAmount ? faceValue ?? undefined : undefined,
+                    })
+                  }
+                  className="flex items-center gap-1.5 rounded-xl bg-ink px-4 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-ink-soft disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {isApplyingCode && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  Applica
+                </button>
+              </div>
+            )}
+            {codeError && <p className="mt-2 text-xs text-red-700">{codeError}</p>}
+          </div>
+
           {/* Riepilogo ordine */}
           <AnimatePresence>
             {amount > 0 && (
@@ -214,15 +405,24 @@ export function GiftCardCheckout() {
                   Riepilogo ordine
                 </p>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-ink-soft">Gift Card MAD Vigevano</span>
-                  <span className="font-medium text-ink">
-                    {amount.toFixed(2).replace(".", ",")} €
-                  </span>
+                  <span className="text-ink-soft">Gift Card MAD Vigevano · valore</span>
+                  <span className="font-medium text-ink">{formatEuro(amount)}</span>
                 </div>
+                {activeDiscount && (
+                  <div className="mt-1 flex items-center justify-between text-sm text-gold">
+                    <span>Sconto {activeDiscount.code}</span>
+                    <span>−{formatEuro(activeDiscount.discountAmount)}</span>
+                  </div>
+                )}
                 <div className="mt-2 flex items-center justify-between border-t border-line pt-2 text-sm font-semibold text-ink">
-                  <span>Totale</span>
-                  <span>{amount.toFixed(2).replace(".", ",")} €</span>
+                  <span>Totale da pagare</span>
+                  <span>{formatEuro(totalToPay)}</span>
                 </div>
+                {activeDiscount && (
+                  <p className="mt-2 text-[0.7rem] text-ink-soft/80">
+                    Chi la riceve avrà una gift card dal valore pieno di {formatEuro(amount)}.
+                  </p>
+                )}
                 <p className="mt-2 text-[0.7rem] text-ink-soft/60">
                   IVA inclusa · Valida 12 mesi dall&apos;acquisto · Nessuna spesa di spedizione
                 </p>

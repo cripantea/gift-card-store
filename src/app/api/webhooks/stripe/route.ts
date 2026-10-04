@@ -61,6 +61,15 @@ export async function POST(request: Request): Promise<NextResponse<WebhookAck | 
           customMessage: metadata.customMessage || null,
         },
         amount: Number(metadata.amount),
+        faceValue: metadata.faceValue ? Number(metadata.faceValue) : undefined,
+        productSlug: metadata.productSlug || null,
+        discount: metadata.discountCode
+          ? {
+              id: metadata.discountCodeId || null,
+              code: metadata.discountCode,
+              amount: Number(metadata.discountAmount ?? 0),
+            }
+          : null,
         scheduledAt: metadata.scheduledAt ? new Date(metadata.scheduledAt) : null,
       });
     } catch (error) {

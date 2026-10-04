@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CheckCircle2, LayoutDashboard, Lock, Search, ScanLine, XCircle } from "lucide-react";
+import { CheckCircle2, LayoutDashboard, Lock, Search, ScanLine, Tag, XCircle } from "lucide-react";
 import {
   confirmGiftCardRedemption,
   lockCassa,
@@ -11,6 +11,7 @@ import {
 } from "@/app/cassa/actions";
 import { formatCardCodeGroups, isCompleteCardCode } from "@/lib/utils/cardCode";
 import { AdminDashboard } from "./AdminDashboard";
+import { DiscountCodesAdmin } from "./DiscountCodesAdmin";
 
 const amountFormatter = new Intl.NumberFormat("it-IT", {
   style: "currency",
@@ -31,7 +32,7 @@ type ViewState =
   | { step: "active"; giftCardId: string; recipientName: string; amount: number }
   | { step: "success"; recipientName: string; amount: number; redeemedAt: string };
 
-type Tab = "cassa" | "dashboard";
+type Tab = "cassa" | "dashboard" | "codici";
 
 export function CassaPortal() {
   const [tab, setTab] = useState<Tab>("cassa");
@@ -114,7 +115,7 @@ export function CassaPortal() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-4xl flex-col px-4 py-10 sm:py-16">
+    <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 py-10 sm:py-16">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -159,7 +160,25 @@ export function CassaPortal() {
           <LayoutDashboard className="h-4 w-4" />
           Dashboard
         </button>
+        <button
+          onClick={() => setTab("codici")}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-colors ${
+            tab === "codici"
+              ? "bg-paper text-ink shadow-sm"
+              : "text-ink-soft hover:text-ink"
+          }`}
+        >
+          <Tag className="h-4 w-4" />
+          Codici sconto
+        </button>
       </div>
+
+      {/* Codici sconto tab */}
+      {tab === "codici" && (
+        <div className="mt-8">
+          <DiscountCodesAdmin />
+        </div>
+      )}
 
       {/* Dashboard tab */}
       {tab === "dashboard" && (

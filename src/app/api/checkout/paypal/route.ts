@@ -3,6 +3,7 @@ import { CheckoutPaymentIntent } from "@paypal/paypal-server-sdk";
 import { paypalOrdersController } from "@/lib/paypal";
 import { prisma } from "@/lib/prisma";
 import { checkoutRequestSchema } from "@/lib/validation/checkout";
+import { quoteCheckout } from "@/lib/services/discountService";
 
 export const runtime = "nodejs";
 
@@ -24,7 +25,14 @@ export async function POST(
     return NextResponse.json({ error: "Payload di checkout non valido." }, { status: 400 });
   }
 
-  const { buyer, recipient, amount, scheduledAt } = parsed.data;
+  const { buyer, recipient, scheduledAt } = parsed.data;
+
+  const quoteResult = await quoteCheckout(parsed.data);
+  if (!quoteResult.ok) {
+    return NextResponse.json({ error: quoteResult.error }, { status: 400 });
+  }
+  const { quote } = quoteResult;
+  const amount = quote.total;
 
   try {
     const { result: order } = await paypalOrdersController.createOrder({
@@ -57,6 +65,11 @@ export async function POST(
         recipientPhone: recipient.recipientPhone,
         customMessage: recipient.customMessage ?? null,
         amount,
+        productSlug: quote.product.slug,
+        faceValue: quote.faceValue,
+        discountAmount: quote.discountAmount,
+        discountCodeId: quote.discount?.id ?? null,
+        discountCodeText: quote.discount?.code ?? null,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
       },
     });

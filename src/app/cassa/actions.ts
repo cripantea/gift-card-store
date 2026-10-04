@@ -21,6 +21,9 @@ export interface AdminGiftCard {
   buyerName: string;
   buyerEmail: string | null;
   amount: number;
+  /** Importo pagato (diverso da amount se è stato usato un codice sconto). */
+  amountPaid: number;
+  discountCode: string | null;
   status: GiftCardStatus;
   createdAt: string;
   expiresAt: string;
@@ -56,7 +59,7 @@ export async function loadAdminDashboard(): Promise<AdminDashboardResult> {
   });
 
   const stats: AdminStats = {
-    totalRevenue: giftCards.reduce((sum, gc) => sum + gc.amount.toNumber(), 0),
+    totalRevenue: giftCards.reduce((sum, gc) => sum + gc.order.totalAmount.toNumber(), 0),
     activeCount: giftCards.filter((gc) => gc.status === GiftCardStatus.ACTIVE && !gc.scheduledAt).length,
     redeemedCount: giftCards.filter((gc) => gc.status === GiftCardStatus.REDEEMED).length,
     expiredCount: giftCards.filter((gc) => gc.status === GiftCardStatus.EXPIRED).length,
@@ -81,6 +84,8 @@ export async function loadAdminDashboard(): Promise<AdminDashboardResult> {
       buyerName: `${gc.order.customer.firstName} ${gc.order.customer.lastName}`,
       buyerEmail: gc.order.customer.email,
       amount: gc.amount.toNumber(),
+      amountPaid: gc.order.totalAmount.toNumber(),
+      discountCode: gc.order.discountCodeText,
       status: gc.status,
       createdAt: gc.createdAt.toISOString(),
       expiresAt: gc.expiresAt.toISOString(),

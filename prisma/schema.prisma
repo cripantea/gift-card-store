@@ -29,6 +29,16 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum DiscountType {
+  PERCENT
+  FIXED_AMOUNT
+}
+
+enum DiscountScope {
+  ALL
+  SELECTED
+}
+
 enum GiftCardStatus {
   ACTIVE
   REDEEMED
@@ -51,7 +61,16 @@ model Order {
   customerId  String
   customer    Customer    @relation(fields: [customerId], references: [id])
   orderNumber String      @unique
+  // Importo realmente pagato (valore della card meno l'eventuale sconto).
   totalAmount Decimal     @db.Decimal(10, 2)
+  // Prodotto del catalogo (src/lib/giftCardProducts.ts) e valore nominale della card.
+  productSlug    String?
+  faceValue      Decimal?      @db.Decimal(10, 2)
+  discountAmount Decimal       @default(0) @db.Decimal(10, 2)
+  discountCodeId String?
+  discountCode   DiscountCode? @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
+  // Copia del codice usato: resta anche se il codice viene eliminato dall'admin.
+  discountCodeText String?
   status      OrderStatus @default(PENDING)
   payment     Payment?
   giftCard    GiftCard?
@@ -59,6 +78,7 @@ model Order {
   updatedAt   DateTime    @updatedAt
 
   @@index([customerId])
+  @@index([discountCodeId])
 }
 
 model Payment {
@@ -124,7 +144,39 @@ model PendingPaypalCheckout {
   recipientLastName  String
   recipientPhone   String
   customMessage    String?  @db.Text
+  // Importo da pagare (già scontato).
   amount           Decimal  @db.Decimal(10, 2)
+  productSlug      String?
+  faceValue        Decimal? @db.Decimal(10, 2)
+  discountAmount   Decimal  @default(0) @db.Decimal(10, 2)
+  discountCodeId   String?
+  discountCodeText String?
   scheduledAt      DateTime?
   createdAt        DateTime @default(now())
+}
+
+// Codici sconto applicabili all'acquisto di gift card, gestiti da /cassa.
+// Lo sconto riduce il prezzo pagato, mai il valore della gift card.
+model DiscountCode {
+  id           String        @id @default(uuid())
+  code         String        @unique
+  description  String?
+  type         DiscountType
+  value        Decimal       @db.Decimal(10, 2)
+  scope        DiscountScope @default(ALL)
+  // Slug dei prodotti a cui si applica quando scope = SELECTED.
+  productSlugs Json?
+  minAmount    Decimal?      @db.Decimal(10, 2)
+  maxUses      Int?
+  usedCount    Int           @default(0)
+  startsAt     DateTime
+  endsAt       DateTime
+  active       Boolean       @default(true)
+  // Mostrato nel banner promo del sito vetrina (GET /api/promo).
+  isPublic     Boolean       @default(false)
+  orders       Order[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([active, startsAt, endsAt])
 }

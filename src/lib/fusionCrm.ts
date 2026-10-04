@@ -13,7 +13,16 @@ interface FusionCRMPayload {
   };
   order: {
     id: string;
+    number: string;
+    /** Importo pagato. */
     total: number;
+    /** Testo pronto per i template WhatsApp, es. "90,00 €". */
+    totalFormatted: string;
+    subtotal: number;
+    discountAmount: number;
+    /** "nessuno" se non è stato usato un codice: Meta non accetta parametri vuoti. */
+    discountCode: string;
+    product: string;
     currency: "EUR";
   };
   giftCard: {
@@ -23,6 +32,10 @@ interface FusionCRMPayload {
     message: string;
   };
 }
+
+const NO_DISCOUNT_CODE = "nessuno";
+
+const euro = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" });
 
 function normalizePhone(phone: string | undefined | null): string | undefined {
   if (!phone) return undefined;
@@ -44,7 +57,12 @@ export interface NotifyFusionCRMInput {
   };
   order: {
     id: string;
+    number: string;
     total: number;
+    subtotal: number;
+    discountAmount: number;
+    discountCode: string | null;
+    product: string;
   };
   giftCard: {
     code: string;
@@ -69,9 +87,15 @@ export function notifyFusionCRM(input: NotifyFusionCRMInput): void {
       phone:     normalizePhone(input.recipient.phone) ?? input.recipient.phone,
     },
     order: {
-      id:       input.order.id,
-      total:    input.order.total,
-      currency: "EUR",
+      id:             input.order.id,
+      number:         input.order.number,
+      total:          input.order.total,
+      totalFormatted: euro.format(input.order.total).replace(/\u00a0/g, " "),
+      subtotal:       input.order.subtotal,
+      discountAmount: input.order.discountAmount,
+      discountCode:   input.order.discountCode ?? NO_DISCOUNT_CODE,
+      product:        input.order.product,
+      currency:       "EUR",
     },
     giftCard: {
       code:    input.giftCard.code,

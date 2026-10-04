@@ -86,6 +86,15 @@ export async function POST(request: Request): Promise<NextResponse<WebhookAck | 
           customMessage: pendingCheckout.customMessage,
         },
         amount: Number(pendingCheckout.amount),
+        faceValue: pendingCheckout.faceValue ? Number(pendingCheckout.faceValue) : undefined,
+        productSlug: pendingCheckout.productSlug,
+        discount: pendingCheckout.discountCodeText
+          ? {
+              id: pendingCheckout.discountCodeId,
+              code: pendingCheckout.discountCodeText,
+              amount: Number(pendingCheckout.discountAmount),
+            }
+          : null,
         scheduledAt: pendingCheckout.scheduledAt,
       });
 
