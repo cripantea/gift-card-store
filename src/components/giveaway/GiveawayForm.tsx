@@ -95,27 +95,28 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
           Ma è solo per te.
         </h1>
         <div className="flex flex-col gap-3 text-sm leading-relaxed text-ink-soft">
-          <p>Questa volta abbiamo pensato a te.</p>
+          <p className="font-display text-lg italic text-ink">Questa volta abbiamo pensato a te.</p>
           <p>
             Ogni volta che scegli MAD ci regali qualcosa di prezioso: la tua fiducia.
-            Oggi vogliamo ricambiare.
+            Oggi voglio ricambiare.
           </p>
           <p>
-            In occasione del lancio della nuova Gift Card sul nostro sito abbiamo riservato
+            In occasione del lancio della nuova Gift Card sul nostro sito ho riservato
             una <span className="font-semibold text-ink">Gift Card da 50 €</span> proprio per te.
-            Raccontaci qualcosa di te e aprila subito.
           </p>
         </div>
-        <div
-          className="flex items-center gap-3 rounded-2xl border px-4 py-3"
+        <a
+          href="#ritira"
+          className="group flex items-center gap-3 rounded-2xl border px-4 py-3 transition-colors hover:bg-gold/10"
           style={{ borderColor: "rgba(164,121,75,0.3)", background: "rgba(164,121,75,0.05)" }}
         >
           <Gift className="h-5 w-5 shrink-0" style={{ color: "var(--color-gold)" }} />
-          <p className="text-xs leading-relaxed text-ink-soft">
-            <span className="font-semibold text-ink">Gift Card MAD da 50 €</span> · valida 12 mesi,
+          <p className="flex-1 text-xs leading-relaxed text-ink-soft">
+            <span className="font-semibold text-ink">La tua Gift Card MAD da 50 €</span> · valida 12 mesi,
             da usare in salone su tutti i servizi.
           </p>
-        </div>
+          <span className="text-xs font-semibold text-gold transition-transform group-hover:translate-y-0.5">Ritirala ↓</span>
+        </a>
       </div>
 
       {!isOpen ? (
@@ -123,7 +124,7 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
           Il Give Away si è concluso. Grazie di cuore per averci pensato — ti aspettiamo in salone.
         </p>
       ) : (
-        <form onSubmit={handleSubmit} className="flex w-full max-w-md flex-col gap-5">
+        <form id="ritira" onSubmit={handleSubmit} className="flex w-full max-w-md scroll-mt-6 flex-col gap-5">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="gw-nome" className={labelClass}>Nome</label>
