@@ -1,4 +1,4 @@
-import { createHash, randomInt } from "crypto";
+import { createHash } from "crypto";
 import { z } from "zod";
 import { OrderStatus, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -34,35 +34,40 @@ export function sanitizeCampaign(raw: string | null | undefined): string | null 
   return value || null;
 }
 
-// Codici invito: niente caratteri ambigui (0/O, 1/I/L), facili da leggere al telefono.
-const INVITE_CODE_CHARSET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-const INVITE_CODE_LENGTH = 6;
+/** Cookie che ricorda sul telefono chi ha già partecipato (contiene il token della sua gift card). */
+export const GIVEAWAY_COOKIE = "mad_giveaway";
+export const GIVEAWAY_COOKIE_MAX_AGE = 60 * 60 * 24 * 400;
 
-export function generateInviteCode(): string {
-  return Array.from({ length: INVITE_CODE_LENGTH }, () => INVITE_CODE_CHARSET[randomInt(INVITE_CODE_CHARSET.length)]).join("");
+export function normalizeGiveawayEmail(raw: string | null | undefined): string | null {
+  const email = raw?.trim().toLowerCase() ?? "";
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 200 ? email : null;
 }
 
-export function normalizeInviteCode(raw: string | null | undefined): string | null {
-  const code = raw?.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 20);
-  return code || null;
-}
-
-/** Invito personale dal parametro ?id= del link, o null se il codice non esiste. */
-export async function findInviteByCode(raw: string | null | undefined) {
-  const code = normalizeInviteCode(raw);
-  return code ? prisma.giveawayInvite.findUnique({ where: { code } }) : null;
-}
-
-/** Registra un'apertura del link personale. Chiamata dal browser, così le anteprime di WhatsApp non contano. */
-export async function recordInviteClick(raw: string): Promise<void> {
-  const code = normalizeInviteCode(raw);
-  if (!code) return;
-  const now = new Date();
-  await prisma.giveawayInvite.updateMany({ where: { code, firstClickedAt: null }, data: { firstClickedAt: now } });
-  await prisma.giveawayInvite.updateMany({
-    where: { code },
-    data: { clickCount: { increment: 1 }, lastClickedAt: now },
+/** Partecipante già registrato a partire dal token della sua gift card (cookie). */
+export async function findEntryBySecretToken(token: string | null | undefined) {
+  if (!token || !/^[a-f0-9]{32}$/.test(token)) return null;
+  return prisma.giveawayEntry.findFirst({
+    where: { giftCard: { secretToken: token } },
+    include: { giftCard: true },
   });
+}
+
+/**
+ * Riconoscimento manuale (es. da un altro telefono): serve l'email usata nel
+ * form più il cellulare, così nessuno ottiene la card di un altro solo
+ * conoscendone l'email.
+ */
+export async function findEntryByEmailAndPhone(rawEmail: string, rawPhone: string) {
+  const email = normalizeGiveawayEmail(rawEmail);
+  const phone = normalizeGiveawayPhone(rawPhone);
+  if (!email || !phone) return null;
+  return prisma.giveawayEntry.findFirst({ where: { email, phone }, include: { giftCard: true } });
+}
+
+/** Conta un'apertura della pagina. Chiamata dal browser, così le anteprime di WhatsApp non contano. */
+export async function recordGiveawayVisit(rawVisitorId: string): Promise<void> {
+  const visitorId = rawVisitorId.replace(/[^a-zA-Z0-9-]/g, "").slice(0, 64) || "anonimo";
+  await prisma.giveawayVisit.create({ data: { visitorId } });
 }
 
 export const giveawaySubmissionSchema = z
@@ -70,6 +75,7 @@ export const giveawaySubmissionSchema = z
     firstName: z.string().trim().min(1).max(100),
     lastName: z.string().trim().min(1).max(100),
     phone: z.string().trim().min(6).max(25),
+    email: z.string().trim().toLowerCase().email("L'email non sembra valida").max(200),
     source: z.enum(GIVEAWAY_SOURCES),
     sourceOther: z.string().trim().max(200).optional(),
     knownSince: z.enum(GIVEAWAY_KNOWN_SINCE),
@@ -82,7 +88,6 @@ export const giveawaySubmissionSchema = z
     marketingConsent: z.boolean(),
     privacyConsent: z.literal(true),
     campaign: z.string().max(100).optional(),
-    inviteCode: z.string().max(40).optional(),
   })
   .refine((data) => data.source !== "Altro" || !!data.sourceOther, {
     path: ["sourceOther"],
@@ -93,7 +98,7 @@ export type GiveawaySubmission = z.infer<typeof giveawaySubmissionSchema>;
 
 export type GiveawayResult =
   | { status: "created" | "existing"; secretToken: string }
-  | { status: "closed" | "invalid_phone" | "rate_limited" };
+  | { status: "closed" | "invalid_phone" | "invalid_email" | "email_taken" | "rate_limited" };
 
 function hashIp(ip: string | null): string | null {
   return ip ? createHash("sha256").update(`mad-giveaway:${ip}`).digest("hex") : null;
@@ -115,19 +120,18 @@ export async function createGiveawayEntry(
   const phone = normalizeGiveawayPhone(input.phone);
   if (!phone) return { status: "invalid_phone" };
 
-  const invite = await findInviteByCode(input.inviteCode);
+  const email = normalizeGiveawayEmail(input.email);
 
-  const existing = await prisma.giveawayEntry.findUnique({
-    where: { phone },
-    include: { giftCard: true },
-  });
+  if (!email) return { status: "invalid_email" };
+
+  // Ha già partecipato con questo cellulare: stessa gift card, nessun doppione.
+  const existing = await prisma.giveawayEntry.findUnique({ where: { phone }, include: { giftCard: true } });
   if (existing) {
-    // Ha già risposto dal link generico: lo colleghiamo al suo invito personale.
-    if (invite && !existing.inviteId) {
-      await prisma.giveawayEntry.update({ where: { id: existing.id }, data: { inviteId: invite.id } });
-    }
+    if (!existing.email) await prisma.giveawayEntry.update({ where: { id: existing.id }, data: { email } }).catch(() => null);
     return { status: "existing", secretToken: existing.giftCard.secretToken };
   }
+  // Email già usata con un altro cellulare: non riveliamo la card di qualcun altro.
+  if (await prisma.giveawayEntry.findUnique({ where: { email } })) return { status: "email_taken" };
 
   const ipHash = hashIp(ip);
   if (ipHash) {
@@ -188,7 +192,7 @@ export async function createGiveawayEntry(
           marketingConsent: input.marketingConsent,
           campaign: sanitizeCampaign(input.campaign),
           ipHash,
-          inviteId: invite?.id ?? null,
+          email,
           giftCardId: card.id,
         },
       });

@@ -185,43 +185,39 @@ model DiscountCode {
 // Risposte al Give Away (/give-away): ogni partecipante riceve una gift card
 // reale da 50 €, una sola per numero di telefono.
 model GiveawayEntry {
-  id               String          @id @default(uuid())
+  id               String    @id @default(uuid())
   firstName        String
   lastName         String
-  phone            String          @unique
+  phone            String    @unique
+  // Email: serve a riconoscere chi ha già partecipato (anche da un altro telefono).
+  email            String?   @unique
   // Valore della select "Dove ci hai conosciuto?"; sourceOther se "Altro".
   source           String
   sourceOther      String?
   knownSince       String
-  birthDate        DateTime?       @db.Date
+  birthDate        DateTime? @db.Date
   // Trattamenti preferiti (valori di SERVIZI_GRUPPI in src/lib/giveawayOptions.ts).
   favoriteServices Json?
-  note             String?         @db.Text
-  marketingConsent Boolean         @default(false)
+  note             String?   @db.Text
+  marketingConsent Boolean   @default(false)
   // Parametro ?src= del link condiviso (es. "whatsapp"), per sapere da dove arriva.
   campaign         String?
   ipHash           String?
-  giftCardId       String          @unique
-  giftCard         GiftCard        @relation(fields: [giftCardId], references: [id])
-  // Invito personale da cui è arrivata la risposta (link /give-away?id=CODICE).
-  inviteId         String?
-  invite           GiveawayInvite? @relation(fields: [inviteId], references: [id], onDelete: SetNull)
-  createdAt        DateTime        @default(now())
+  giftCardId       String    @unique
+  giftCard         GiftCard  @relation(fields: [giftCardId], references: [id])
+  createdAt        DateTime  @default(now())
 
   @@index([ipHash, createdAt])
-  @@index([inviteId])
 }
 
-// Link personale del Give Away da mandare su WhatsApp a un cliente: il codice
-// nel link (?id=) collega i click e la risposta del form a quella persona.
-model GiveawayInvite {
-  id             String          @id @default(uuid())
-  code           String          @unique
-  name           String
-  phone          String?
-  clickCount     Int             @default(0)
-  firstClickedAt DateTime?
-  lastClickedAt  DateTime?
-  entries        GiveawayEntry[]
-  createdAt      DateTime        @default(now())
+// Aperture della pagina /give-away (link generico uguale per tutti): solo il
+// conteggio, senza sapere chi è. visitorId è un identificativo casuale del
+// browser, usato soltanto per contare i visitatori unici.
+model GiveawayVisit {
+  id        String   @id @default(uuid())
+  visitorId String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([visitorId])
 }

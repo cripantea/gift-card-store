@@ -1,15 +1,15 @@
 "use server";
 
-import { GiftCardStatus, Prisma } from "@/generated/prisma/client";
+import { GiftCardStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { isCassaSessionValid } from "@/lib/cassaAuth";
-import { generateInviteCode, normalizeGiveawayPhone } from "@/lib/giveaway";
 
 export interface AdminGiveawayEntry {
   id: string;
   firstName: string;
   lastName: string;
   phone: string;
+  email: string | null;
   source: string;
   sourceOther: string | null;
   knownSince: string;
@@ -22,51 +22,49 @@ export interface AdminGiveawayEntry {
   cardCode: string;
   cardStatus: GiftCardStatus;
   cardOpened: boolean;
-  /** Persona dell'invito personale da cui ha risposto, se c'è. */
-  inviteName: string | null;
-  inviteCode: string | null;
 }
 
-export interface AdminGiveawayInvite {
-  id: string;
-  code: string;
-  name: string;
-  phone: string | null;
-  clickCount: number;
-  firstClickedAt: string | null;
-  lastClickedAt: string | null;
-  createdAt: string;
-  /** Id delle risposte arrivate da questo link (di solito una). */
-  entryIds: string[];
+/** Aperture del link generico /give-away: solo numeri, nessun dato su chi ha aperto. */
+export interface AdminGiveawayVisits {
+  total: number;
+  uniqueVisitors: number;
+  today: number;
+  last7Days: number;
 }
 
 export type AdminGiveawayResult =
   | { authorized: false }
-  | { authorized: true; entries: AdminGiveawayEntry[]; invites: AdminGiveawayInvite[] };
+  | { authorized: true; entries: AdminGiveawayEntry[]; visits: AdminGiveawayVisits };
 
 export async function loadGiveawayEntries(): Promise<AdminGiveawayResult> {
   if (!(await isCassaSessionValid())) {
     return { authorized: false };
   }
 
-  const [entries, invites] = await Promise.all([
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  const [entries, total, uniqueRows, today, last7Days] = await Promise.all([
     prisma.giveawayEntry.findMany({
-      include: { giftCard: true, invite: true },
+      include: { giftCard: true },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.giveawayInvite.findMany({
-      include: { entries: { select: { id: true } } },
-      orderBy: { createdAt: "desc" },
-    }),
+    prisma.giveawayVisit.count(),
+    prisma.giveawayVisit.groupBy({ by: ["visitorId"] }),
+    prisma.giveawayVisit.count({ where: { createdAt: { gte: startOfToday } } }),
+    prisma.giveawayVisit.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
   ]);
 
   return {
     authorized: true,
+    visits: { total, uniqueVisitors: uniqueRows.length, today, last7Days },
     entries: entries.map((e) => ({
       id: e.id,
       firstName: e.firstName,
       lastName: e.lastName,
       phone: e.phone,
+      email: e.email,
       source: e.source,
       sourceOther: e.sourceOther,
       knownSince: e.knownSince,
@@ -81,64 +79,6 @@ export async function loadGiveawayEntries(): Promise<AdminGiveawayResult> {
       cardCode: e.giftCard.cardCode,
       cardStatus: e.giftCard.status,
       cardOpened: e.giftCard.isOpened,
-      inviteName: e.invite?.name ?? null,
-      inviteCode: e.invite?.code ?? null,
-    })),
-    invites: invites.map((i) => ({
-      id: i.id,
-      code: i.code,
-      name: i.name,
-      phone: i.phone,
-      clickCount: i.clickCount,
-      firstClickedAt: i.firstClickedAt?.toISOString() ?? null,
-      lastClickedAt: i.lastClickedAt?.toISOString() ?? null,
-      createdAt: i.createdAt.toISOString(),
-      entryIds: i.entries.map((e) => e.id),
     })),
   };
-}
-
-export type CreateInvitesResult =
-  | { status: "unauthorized" }
-  | { status: "ok"; created: number; skipped: string[] };
-
-/**
- * Crea un link personale per ogni riga "Nome Cognome, telefono" (telefono
- * facoltativo, separato da virgola, punto e virgola o tab).
- */
-export async function createGiveawayInvites(text: string): Promise<CreateInvitesResult> {
-  if (!(await isCassaSessionValid())) return { status: "unauthorized" };
-
-  const skipped: string[] = [];
-  let created = 0;
-
-  for (const line of text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(0, 500)) {
-    const [rawName, rawPhone] = line.split(/[,;\t]/).map((p) => p.trim());
-    const name = (rawName ?? "").slice(0, 100);
-    const phone = rawPhone ? normalizeGiveawayPhone(rawPhone) : null;
-    if (!name || (rawPhone && !phone)) {
-      skipped.push(line);
-      continue;
-    }
-
-    for (let attempt = 0; attempt < 5; attempt++) {
-      try {
-        await prisma.giveawayInvite.create({ data: { code: generateInviteCode(), name, phone } });
-        created++;
-        break;
-      } catch (error) {
-        const isCodeCollision = error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
-        if (!isCodeCollision || attempt === 4) throw error;
-      }
-    }
-  }
-
-  return { status: "ok", created, skipped };
-}
-
-export async function deleteGiveawayInvite(id: string): Promise<{ ok: boolean }> {
-  if (!(await isCassaSessionValid())) return { ok: false };
-  // Le risposte già arrivate restano: perdono solo il collegamento (onDelete: SetNull).
-  await prisma.giveawayInvite.delete({ where: { id } }).catch(() => null);
-  return { ok: true };
 }

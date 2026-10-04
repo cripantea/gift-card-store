@@ -1,5 +1,8 @@
+import { cookies } from "next/headers";
 import { GiveawayForm } from "@/components/giveaway/GiveawayForm";
-import { findInviteByCode, isGiveawayOpen, sanitizeCampaign } from "@/lib/giveaway";
+import { GiveawayVisitTracker } from "@/components/giveaway/GiveawayVisitTracker";
+import { GiveawayWelcomeBack } from "@/components/giveaway/GiveawayWelcomeBack";
+import { GIVEAWAY_COOKIE, findEntryBySecretToken, isGiveawayOpen, sanitizeCampaign } from "@/lib/giveaway";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,19 +13,29 @@ export const metadata = {
 };
 
 interface GiveawayPageProps {
-  searchParams: Promise<{ src?: string | string[]; id?: string | string[] }>;
+  searchParams: Promise<{ src?: string | string[] }>;
 }
 
 export default async function GiveawayPage({ searchParams }: GiveawayPageProps) {
-  const { src, id } = await searchParams;
+  const { src } = await searchParams;
   const campaign = sanitizeCampaign(Array.isArray(src) ? src[0] : src);
-  const invite = await findInviteByCode(Array.isArray(id) ? id[0] : id);
+
+  // Ha già compilato il form da questo telefono: niente form, direttamente il suo regalo.
+  const cookieStore = await cookies();
+  const entry = await findEntryBySecretToken(cookieStore.get(GIVEAWAY_COOKIE)?.value);
+  if (entry) {
+    return (
+      <>
+        <GiveawayVisitTracker />
+        <GiveawayWelcomeBack firstName={entry.firstName} secretToken={entry.giftCard.secretToken} />
+      </>
+    );
+  }
 
   return (
-    <GiveawayForm
-      campaign={campaign}
-      isOpen={isGiveawayOpen()}
-      invite={invite ? { code: invite.code, name: invite.name, phone: invite.phone } : null}
-    />
+    <>
+      <GiveawayVisitTracker />
+      <GiveawayForm campaign={campaign} isOpen={isGiveawayOpen()} />
+    </>
   );
 }

@@ -1,11 +1,30 @@
 "use server";
 
-import { headers } from "next/headers";
-import { createGiveawayEntry, giveawaySubmissionSchema, recordInviteClick } from "@/lib/giveaway";
+import { cookies, headers } from "next/headers";
+import {
+  GIVEAWAY_COOKIE,
+  GIVEAWAY_COOKIE_MAX_AGE,
+  createGiveawayEntry,
+  findEntryByEmailAndPhone,
+  giveawaySubmissionSchema,
+  recordGiveawayVisit,
+} from "@/lib/giveaway";
 
 export type SubmitGiveawayResult =
   | { ok: true; secretToken: string }
   | { ok: false; error: string };
+
+/** Ricorda sul telefono che questa persona ha già partecipato. */
+async function rememberParticipant(secretToken: string): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(GIVEAWAY_COOKIE, secretToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: GIVEAWAY_COOKIE_MAX_AGE,
+  });
+}
 
 export async function submitGiveaway(input: unknown): Promise<SubmitGiveawayResult> {
   const parsed = giveawaySubmissionSchema.safeParse(input);
@@ -22,11 +41,19 @@ export async function submitGiveaway(input: unknown): Promise<SubmitGiveawayResu
     switch (result.status) {
       case "created":
       case "existing":
+        await rememberParticipant(result.secretToken);
         return { ok: true, secretToken: result.secretToken };
       case "closed":
         return { ok: false, error: "Il Give Away si è concluso. Grazie di cuore per averci pensato!" };
       case "invalid_phone":
         return { ok: false, error: "Il numero di telefono non sembra valido." };
+      case "invalid_email":
+        return { ok: false, error: "L'email non sembra valida." };
+      case "email_taken":
+        return {
+          ok: false,
+          error: "Questa email ha già partecipato con un altro cellulare. Usa «Hai già partecipato?» qui sotto con il cellulare di allora.",
+        };
       case "rate_limited":
         return { ok: false, error: "Troppe richieste da questa connessione. Riprova più tardi." };
     }
@@ -36,10 +63,25 @@ export async function submitGiveaway(input: unknown): Promise<SubmitGiveawayResu
   }
 }
 
-export async function trackInviteClick(code: string): Promise<void> {
+/** "Hai già partecipato?": ritrova la partecipazione da email + cellulare (es. da un altro telefono). */
+export async function recoverGiveaway(email: string, phone: string): Promise<SubmitGiveawayResult> {
   try {
-    await recordInviteClick(code);
+    const entry = await findEntryByEmailAndPhone(email, phone);
+    if (!entry) {
+      return { ok: false, error: "Non troviamo una partecipazione con questa email e questo cellulare." };
+    }
+    await rememberParticipant(entry.giftCard.secretToken);
+    return { ok: true, secretToken: entry.giftCard.secretToken };
   } catch (error) {
-    console.error("[Giveaway] tracciamento click fallito", error);
+    console.error("[Giveaway] riconoscimento fallito", error);
+    return { ok: false, error: "Qualcosa è andato storto. Riprova tra qualche istante." };
+  }
+}
+
+export async function trackGiveawayVisit(visitorId: string): Promise<void> {
+  try {
+    await recordGiveawayVisit(visitorId);
+  } catch (error) {
+    console.error("[Giveaway] conteggio apertura fallito", error);
   }
 }

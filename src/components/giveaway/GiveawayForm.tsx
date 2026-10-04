@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Check, ChevronDown, Gift, X } from "lucide-react";
-import { submitGiveaway, trackInviteClick } from "@/app/give-away/actions";
+import { recoverGiveaway, submitGiveaway } from "@/app/give-away/actions";
 import { GIVEAWAY_KNOWN_SINCE, GIVEAWAY_SOURCES, SERVIZI_GRUPPI } from "@/lib/giveawayOptions";
 
 const inputClass =
@@ -206,35 +206,58 @@ function DatePickerNascita({ value, onChange }: { value: string; onChange: (v: s
   );
 }
 
-export interface GiveawayInviteInfo {
-  code: string;
-  name: string;
-  phone: string | null;
+/** "Hai già partecipato?": ritrova il regalo con email + cellulare, senza ricompilare il form. */
+function AlreadyParticipated() {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleRecover(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    startTransition(async () => {
+      const result = await recoverGiveaway(email, phone);
+      if (result.ok) router.refresh();
+      else setError(result.error);
+    });
+  }
+
+  if (!open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)} className="text-xs font-medium text-gold underline underline-offset-4">
+        Hai già partecipato? Ritrova il tuo regalo
+      </button>
+    );
+  }
+
+  return (
+    <form onSubmit={handleRecover} className="flex w-full flex-col gap-2.5 rounded-xl border border-sand-dark bg-paper-muted px-4 py-3.5">
+      <p className="text-xs text-ink-soft">Inserisci l&apos;email e il cellulare usati quando hai compilato il form.</p>
+      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="La tua email"
+        required autoComplete="email" className={inputClass} />
+      <input type="tel" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+39 333 123 4567"
+        required autoComplete="tel" className={inputClass} />
+      {error && <p role="alert" className="text-xs text-red-700">{error}</p>}
+      <button type="submit" disabled={isPending}
+        className="rounded-xl bg-ink py-3 text-sm font-semibold text-paper transition-all hover:bg-ink/85 disabled:opacity-40">
+        {isPending ? "Un attimo…" : "Ritrova il mio regalo"}
+      </button>
+    </form>
+  );
 }
 
-export function GiveawayForm({
-  campaign,
-  isOpen,
-  invite,
-}: {
-  campaign: string | null;
-  isOpen: boolean;
-  invite: GiveawayInviteInfo | null;
-}) {
+export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; isOpen: boolean }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  // Dal link personale: nome e telefono già compilati, modificabili.
-  const [invitedFirst, ...invitedRest] = (invite?.name ?? "").trim().split(/\s+/);
-  const [firstName, setFirstName]     = useState(invitedFirst ?? "");
-  const [lastName, setLastName]       = useState(invitedRest.join(" "));
-  const [phone, setPhone]             = useState(invite?.phone ?? "");
-
-  const inviteCode = invite?.code;
-  useEffect(() => {
-    if (inviteCode) trackInviteClick(inviteCode).catch(console.error);
-  }, [inviteCode]);
+  const [firstName, setFirstName]     = useState("");
+  const [lastName, setLastName]       = useState("");
+  const [phone, setPhone]             = useState("");
+  const [email, setEmail]             = useState("");
   const [source, setSource]           = useState("");
   const [sourceOther, setSourceOther] = useState("");
   const [knownSince, setKnownSince]   = useState("");
@@ -248,6 +271,7 @@ export function GiveawayForm({
     firstName.trim() !== "" &&
     lastName.trim() !== "" &&
     phone.trim().length >= 6 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
     source !== "" &&
     (source !== "Altro" || sourceOther.trim() !== "") &&
     knownSince !== "" &&
@@ -264,6 +288,7 @@ export function GiveawayForm({
         firstName,
         lastName,
         phone,
+        email,
         source,
         sourceOther: source === "Altro" ? sourceOther : undefined,
         knownSince,
@@ -273,7 +298,6 @@ export function GiveawayForm({
         marketingConsent: marketing,
         privacyConsent: privacy,
         campaign: campaign ?? undefined,
-        inviteCode: inviteCode,
       });
       if (result.ok) router.push(`/gift/${result.secretToken}`);
       else setError(result.error);
@@ -295,7 +319,7 @@ export function GiveawayForm({
         </h1>
         <div className="flex flex-col gap-3 text-sm leading-relaxed text-ink-soft">
           <p className="font-display text-lg italic text-ink">
-            {invite ? `${invitedFirst}, questa volta abbiamo pensato a te.` : "Questa volta abbiamo pensato a te."}
+            Questa volta abbiamo pensato a te.
           </p>
           <p>
             Ogni volta che scegli MAD ci regali qualcosa di prezioso: la tua fiducia.
@@ -344,6 +368,13 @@ export function GiveawayForm({
             <input id="gw-telefono" type="tel" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value)}
               placeholder="+39 333 123 4567" required autoComplete="tel" className={inputClass} />
             <p className="text-[0.68rem] text-neutral-400">Una Gift Card per numero: ti serve per ritrovarla.</p>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="gw-email" className={labelClass}>Email</label>
+            <input id="gw-email" type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="nome@esempio.it" required autoComplete="email" maxLength={200} className={inputClass} />
+            <p className="text-[0.68rem] text-neutral-400">Ci serve per riconoscerti se riapri il link: il tuo regalo resta sempre a portata di mano.</p>
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -428,6 +459,12 @@ export function GiveawayForm({
             Hai diritto di accedere, rettificare o cancellare i tuoi dati contattandoci al numero sopra.
           </p>
         </form>
+      )}
+
+      {isOpen && (
+        <div className="mt-8 flex w-full max-w-md flex-col items-center">
+          <AlreadyParticipated />
+        </div>
       )}
     </div>
   );
