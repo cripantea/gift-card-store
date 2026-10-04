@@ -59,10 +59,16 @@ const T_REVEALED = 5600;  // lid fully gone (2400 + 2800 lid + 400 buffer)
 export function UnwrappingExperience({
   secretToken,
   noHint = false,
+  subtitle = "Qualcuno ha pensato a te con una Gift Card MAD Vigevano.",
+  revealMessage,
   children,
 }: {
   secretToken?: string;
   noHint?: boolean;
+  /** Testo sotto "Hai ricevuto un regalo", prima dell'apertura. */
+  subtitle?: string;
+  /** Frase mostrata sopra la card quando il regalo si apre. */
+  revealMessage?: string;
   children: ReactNode;
 }) {
   const [stage, setStage]  = useState<Stage>("idle");
@@ -102,7 +108,7 @@ export function UnwrappingExperience({
           >
             <p className="font-display text-4xl font-semibold text-ink sm:text-5xl">Hai ricevuto un regalo</p>
             <p className="max-w-sm text-base leading-relaxed text-ink-soft sm:text-lg">
-              Qualcuno ha pensato a te con una Gift Card MAD Vigevano.
+              {subtitle}
             </p>
           </motion.div>
         )}
@@ -333,6 +339,11 @@ export function UnwrappingExperience({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.7, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
           >
+            {revealMessage && (
+              <p className="mb-6 text-center font-display text-xl italic leading-snug text-gold sm:text-2xl">
+                {revealMessage}
+              </p>
+            )}
             {children}
           </motion.div>
         )}

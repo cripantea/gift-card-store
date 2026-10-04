@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { UnwrappingExperience } from "@/components/gift/UnwrappingExperience";
 import { VirtualGiftCard } from "@/components/gift/VirtualGiftCard";
 import { CardScene } from "@/components/gift/CardScene";
+import { GIVEAWAY_PRODUCT_SLUG } from "@/lib/giveaway";
+import { GIVEAWAY_THANK_YOU } from "@/lib/giveawayOptions";
 
 export const runtime = "nodejs";
 
@@ -23,11 +25,15 @@ export default async function GiftPage({ params }: GiftPageProps) {
     notFound();
   }
 
+  const isGiveaway = giftCard.order.productSlug === GIVEAWAY_PRODUCT_SLUG;
+
   const card = (
     <VirtualGiftCard
       amount={giftCard.amount.toNumber()}
       recipientName={`${giftCard.recipientFirstName} ${giftCard.recipientLastName}`.trim()}
-      buyerFullName={`${giftCard.order.customer.firstName} ${giftCard.order.customer.lastName}`}
+      buyerFullName={
+        isGiveaway ? "MAD Vigevano" : `${giftCard.order.customer.firstName} ${giftCard.order.customer.lastName}`
+      }
       customMessage={giftCard.customMessage}
       cardCode={giftCard.cardCode}
       expiresAt={giftCard.expiresAt}
@@ -42,6 +48,9 @@ export default async function GiftPage({ params }: GiftPageProps) {
           Gift Card
         </span>
         <p className="font-display text-2xl font-semibold text-ink">MAD Vigevano</p>
+        {isGiveaway && giftCard.isOpened && (
+          <p className="mt-2 max-w-sm font-display text-lg italic leading-snug text-gold">{GIVEAWAY_THANK_YOU}</p>
+        )}
       </div>
 
       <div className="w-full max-w-md">
@@ -51,7 +60,11 @@ export default async function GiftPage({ params }: GiftPageProps) {
         ) : (
           // Not yet opened: UnwrappingExperience handles the dramatic entrance;
           // CardScene provides idle float + parallax + shimmer after reveal.
-          <UnwrappingExperience secretToken={giftCard.secretToken}>
+          <UnwrappingExperience
+            secretToken={giftCard.secretToken}
+            subtitle={isGiveaway ? "Questa volta abbiamo pensato noi a te: una Gift Card MAD da 50 €." : undefined}
+            revealMessage={isGiveaway ? GIVEAWAY_THANK_YOU : undefined}
+          >
             <CardScene skipEntrance>{card}</CardScene>
           </UnwrappingExperience>
         )}

@@ -1,10 +1,21 @@
 import { GiveawayForm } from "@/components/giveaway/GiveawayForm";
+import { isGiveawayOpen, sanitizeCampaign } from "@/lib/giveaway";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Un regalo per te — MAD Vigevano",
-  description: "Ci conosci già. Adesso vogliamo conoscerti meglio.",
+  title: "Ma è solo per te — MAD Vigevano",
+  description: "Questa volta abbiamo pensato a te: una Gift Card da 50 € riservata ai nostri clienti.",
 };
 
-export default function GiveawayPage() {
-  return <GiveawayForm />;
+interface GiveawayPageProps {
+  searchParams: Promise<{ src?: string | string[] }>;
+}
+
+export default async function GiveawayPage({ searchParams }: GiveawayPageProps) {
+  const { src } = await searchParams;
+  const campaign = sanitizeCampaign(Array.isArray(src) ? src[0] : src);
+
+  return <GiveawayForm campaign={campaign} isOpen={isGiveawayOpen()} />;
 }

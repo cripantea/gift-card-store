@@ -114,6 +114,7 @@ model GiftCard {
   scheduledAt    DateTime?
   emailSentAt    DateTime?
   redemptionLogs RedemptionLog[]
+  giveawayEntry  GiveawayEntry?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -179,4 +180,26 @@ model DiscountCode {
   updatedAt    DateTime      @updatedAt
 
   @@index([active, startsAt, endsAt])
+}
+
+// Risposte al Give Away (/giveaway): ogni partecipante riceve una gift card
+// reale da 50 €, una sola per numero di telefono.
+model GiveawayEntry {
+  id               String   @id @default(uuid())
+  firstName        String
+  lastName         String
+  phone            String   @unique
+  // Valore della select "Dove ci hai conosciuto?"; sourceOther se "Altro".
+  source           String
+  sourceOther      String?
+  knownSince       String
+  marketingConsent Boolean  @default(false)
+  // Parametro ?src= del link condiviso (es. "whatsapp"), per sapere da dove arriva.
+  campaign         String?
+  ipHash           String?
+  giftCardId       String   @unique
+  giftCard         GiftCard @relation(fields: [giftCardId], references: [id])
+  createdAt        DateTime @default(now())
+
+  @@index([ipHash, createdAt])
 }
