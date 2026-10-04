@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash, randomInt } from "crypto";
 import { z } from "zod";
 import { OrderStatus, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -34,6 +34,37 @@ export function sanitizeCampaign(raw: string | null | undefined): string | null 
   return value || null;
 }
 
+// Codici invito: niente caratteri ambigui (0/O, 1/I/L), facili da leggere al telefono.
+const INVITE_CODE_CHARSET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+const INVITE_CODE_LENGTH = 6;
+
+export function generateInviteCode(): string {
+  return Array.from({ length: INVITE_CODE_LENGTH }, () => INVITE_CODE_CHARSET[randomInt(INVITE_CODE_CHARSET.length)]).join("");
+}
+
+export function normalizeInviteCode(raw: string | null | undefined): string | null {
+  const code = raw?.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 20);
+  return code || null;
+}
+
+/** Invito personale dal parametro ?id= del link, o null se il codice non esiste. */
+export async function findInviteByCode(raw: string | null | undefined) {
+  const code = normalizeInviteCode(raw);
+  return code ? prisma.giveawayInvite.findUnique({ where: { code } }) : null;
+}
+
+/** Registra un'apertura del link personale. Chiamata dal browser, così le anteprime di WhatsApp non contano. */
+export async function recordInviteClick(raw: string): Promise<void> {
+  const code = normalizeInviteCode(raw);
+  if (!code) return;
+  const now = new Date();
+  await prisma.giveawayInvite.updateMany({ where: { code, firstClickedAt: null }, data: { firstClickedAt: now } });
+  await prisma.giveawayInvite.updateMany({
+    where: { code },
+    data: { clickCount: { increment: 1 }, lastClickedAt: now },
+  });
+}
+
 export const giveawaySubmissionSchema = z
   .object({
     firstName: z.string().trim().min(1).max(100),
@@ -51,6 +82,7 @@ export const giveawaySubmissionSchema = z
     marketingConsent: z.boolean(),
     privacyConsent: z.literal(true),
     campaign: z.string().max(100).optional(),
+    inviteCode: z.string().max(40).optional(),
   })
   .refine((data) => data.source !== "Altro" || !!data.sourceOther, {
     path: ["sourceOther"],
@@ -83,11 +115,19 @@ export async function createGiveawayEntry(
   const phone = normalizeGiveawayPhone(input.phone);
   if (!phone) return { status: "invalid_phone" };
 
+  const invite = await findInviteByCode(input.inviteCode);
+
   const existing = await prisma.giveawayEntry.findUnique({
     where: { phone },
     include: { giftCard: true },
   });
-  if (existing) return { status: "existing", secretToken: existing.giftCard.secretToken };
+  if (existing) {
+    // Ha già risposto dal link generico: lo colleghiamo al suo invito personale.
+    if (invite && !existing.inviteId) {
+      await prisma.giveawayEntry.update({ where: { id: existing.id }, data: { inviteId: invite.id } });
+    }
+    return { status: "existing", secretToken: existing.giftCard.secretToken };
+  }
 
   const ipHash = hashIp(ip);
   if (ipHash) {
@@ -148,6 +188,7 @@ export async function createGiveawayEntry(
           marketingConsent: input.marketingConsent,
           campaign: sanitizeCampaign(input.campaign),
           ipHash,
+          inviteId: invite?.id ?? null,
           giftCardId: card.id,
         },
       });

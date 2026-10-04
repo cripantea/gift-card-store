@@ -5,8 +5,10 @@ import { AlertTriangle, Check, Copy, Download, RefreshCw, XCircle } from "lucide
 import {
   loadGiveawayEntries,
   type AdminGiveawayEntry,
+  type AdminGiveawayInvite,
   type AdminGiveawayResult,
 } from "@/app/cassa/giveawayActions";
+import { GiveawayInvitesPanel } from "./GiveawayInvitesPanel";
 import { GiftCardStatus } from "@/generated/prisma/enums";
 
 const dateTime = new Intl.DateTimeFormat("it-IT", { dateStyle: "short", timeStyle: "short" });
@@ -39,13 +41,17 @@ function countBy(entries: AdminGiveawayEntry[], key: (e: AdminGiveawayEntry) => 
 
 export function GiveawayAdmin() {
   const [entries, setEntries] = useState<AdminGiveawayEntry[]>([]);
+  const [invites, setInvites] = useState<AdminGiveawayInvite[]>([]);
   const [loading, setLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const applyResult = useCallback((result: AdminGiveawayResult) => {
     if (!result.authorized) setSessionExpired(true);
-    else setEntries(result.entries);
+    else {
+      setEntries(result.entries);
+      setInvites(result.invites);
+    }
     setLoading(false);
   }, []);
 
@@ -55,6 +61,10 @@ export function GiveawayAdmin() {
 
   function handleRefresh() {
     setLoading(true);
+    loadGiveawayEntries().then(applyResult);
+  }
+
+  function reloadQuietly() {
     loadGiveawayEntries().then(applyResult);
   }
 
@@ -70,7 +80,7 @@ export function GiveawayAdmin() {
 
   function handleExportCSV() {
     if (!entries.length) return;
-    const header = ["Data", "Nome", "Cognome", "Telefono", "Dove ci ha conosciuto", "Da quanto ci conosce", "Data di nascita", "Trattamenti preferiti", "Nota", "Consenso marketing", "Provenienza link", "Codice gift card", "Stato gift card"];
+    const header = ["Data", "Nome", "Cognome", "Telefono", "Dove ci ha conosciuto", "Da quanto ci conosce", "Data di nascita", "Trattamenti preferiti", "Nota", "Consenso marketing", "Provenienza link", "Link personale di", "Codice gift card", "Stato gift card"];
     const rows = entries.map((e) => [
       dateTime.format(new Date(e.createdAt)),
       e.firstName,
@@ -83,6 +93,7 @@ export function GiveawayAdmin() {
       e.note ?? "",
       e.marketingConsent ? "Sì" : "No",
       e.campaign ?? "",
+      e.inviteName ? `${e.inviteName} (${e.inviteCode})` : "",
       e.cardCode,
       cardLabel(e),
     ]);
@@ -128,7 +139,7 @@ export function GiveawayAdmin() {
       {/* Link da condividere */}
       <div className="flex flex-col gap-3 rounded-2xl border border-gold/30 bg-gold/5 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-medium text-ink">Link da mandare su WhatsApp (uguale per tutti)</p>
+          <p className="text-xs font-medium text-ink">Link generico (uguale per tutti, senza sapere chi apre)</p>
           <p className="truncate font-mono text-xs text-ink-soft">{SHARE_LINK}</p>
           <p className="mt-1 text-[0.65rem] text-ink-soft/70">
             Le risposte restano solo qui nello shop: non vengono inviate al CRM.
@@ -142,6 +153,8 @@ export function GiveawayAdmin() {
           {copied ? "Copiato" : "Copia link"}
         </button>
       </div>
+
+      <GiveawayInvitesPanel invites={invites} entries={entries} onChanged={reloadQuietly} />
 
       {/* Riepilogo */}
       <div className="grid gap-3 sm:grid-cols-3">
@@ -198,6 +211,9 @@ export function GiveawayAdmin() {
                       {e.phone}
                       {e.marketingConsent && " · ok promo"}
                     </p>
+                    {e.inviteName && (
+                      <p className="text-[0.65rem] text-gold">Dal link di {e.inviteName}</p>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-ink">{sourceLabel(e)}</td>
                   <td className="px-4 py-3 text-ink">{e.knownSince}</td>

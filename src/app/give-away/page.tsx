@@ -1,5 +1,5 @@
 import { GiveawayForm } from "@/components/giveaway/GiveawayForm";
-import { isGiveawayOpen, sanitizeCampaign } from "@/lib/giveaway";
+import { findInviteByCode, isGiveawayOpen, sanitizeCampaign } from "@/lib/giveaway";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,12 +10,19 @@ export const metadata = {
 };
 
 interface GiveawayPageProps {
-  searchParams: Promise<{ src?: string | string[] }>;
+  searchParams: Promise<{ src?: string | string[]; id?: string | string[] }>;
 }
 
 export default async function GiveawayPage({ searchParams }: GiveawayPageProps) {
-  const { src } = await searchParams;
+  const { src, id } = await searchParams;
   const campaign = sanitizeCampaign(Array.isArray(src) ? src[0] : src);
+  const invite = await findInviteByCode(Array.isArray(id) ? id[0] : id);
 
-  return <GiveawayForm campaign={campaign} isOpen={isGiveawayOpen()} />;
+  return (
+    <GiveawayForm
+      campaign={campaign}
+      isOpen={isGiveawayOpen()}
+      invite={invite ? { code: invite.code, name: invite.name, phone: invite.phone } : null}
+    />
+  );
 }

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Check, ChevronDown, Gift, X } from "lucide-react";
-import { submitGiveaway } from "@/app/give-away/actions";
+import { submitGiveaway, trackInviteClick } from "@/app/give-away/actions";
 import { GIVEAWAY_KNOWN_SINCE, GIVEAWAY_SOURCES, SERVIZI_GRUPPI } from "@/lib/giveawayOptions";
 
 const inputClass =
@@ -206,14 +206,35 @@ function DatePickerNascita({ value, onChange }: { value: string; onChange: (v: s
   );
 }
 
-export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; isOpen: boolean }) {
+export interface GiveawayInviteInfo {
+  code: string;
+  name: string;
+  phone: string | null;
+}
+
+export function GiveawayForm({
+  campaign,
+  isOpen,
+  invite,
+}: {
+  campaign: string | null;
+  isOpen: boolean;
+  invite: GiveawayInviteInfo | null;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const [firstName, setFirstName]     = useState("");
-  const [lastName, setLastName]       = useState("");
-  const [phone, setPhone]             = useState("");
+  // Dal link personale: nome e telefono già compilati, modificabili.
+  const [invitedFirst, ...invitedRest] = (invite?.name ?? "").trim().split(/\s+/);
+  const [firstName, setFirstName]     = useState(invitedFirst ?? "");
+  const [lastName, setLastName]       = useState(invitedRest.join(" "));
+  const [phone, setPhone]             = useState(invite?.phone ?? "");
+
+  const inviteCode = invite?.code;
+  useEffect(() => {
+    if (inviteCode) trackInviteClick(inviteCode).catch(console.error);
+  }, [inviteCode]);
   const [source, setSource]           = useState("");
   const [sourceOther, setSourceOther] = useState("");
   const [knownSince, setKnownSince]   = useState("");
@@ -252,6 +273,7 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
         marketingConsent: marketing,
         privacyConsent: privacy,
         campaign: campaign ?? undefined,
+        inviteCode: inviteCode,
       });
       if (result.ok) router.push(`/gift/${result.secretToken}`);
       else setError(result.error);
@@ -272,7 +294,9 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
           Ma è solo per te.
         </h1>
         <div className="flex flex-col gap-3 text-sm leading-relaxed text-ink-soft">
-          <p className="font-display text-lg italic text-ink">Questa volta abbiamo pensato a te.</p>
+          <p className="font-display text-lg italic text-ink">
+            {invite ? `${invitedFirst}, questa volta abbiamo pensato a te.` : "Questa volta abbiamo pensato a te."}
+          </p>
           <p>
             Ogni volta che scegli MAD ci regali qualcosa di prezioso: la tua fiducia.
             Oggi voglio ricambiare.

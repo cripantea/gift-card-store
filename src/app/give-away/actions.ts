@@ -1,7 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
-import { createGiveawayEntry, giveawaySubmissionSchema } from "@/lib/giveaway";
+import { createGiveawayEntry, giveawaySubmissionSchema, recordInviteClick } from "@/lib/giveaway";
 
 export type SubmitGiveawayResult =
   | { ok: true; secretToken: string }
@@ -33,5 +33,13 @@ export async function submitGiveaway(input: unknown): Promise<SubmitGiveawayResu
   } catch (error) {
     console.error("[Giveaway] creazione gift card fallita", error);
     return { ok: false, error: "Qualcosa è andato storto. Riprova tra qualche istante." };
+  }
+}
+
+export async function trackInviteClick(code: string): Promise<void> {
+  try {
+    await recordInviteClick(code);
+  } catch (error) {
+    console.error("[Giveaway] tracciamento click fallito", error);
   }
 }
