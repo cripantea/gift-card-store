@@ -130,6 +130,9 @@ export function GiveawayAdmin() {
         <div className="min-w-0">
           <p className="text-xs font-medium text-ink">Link da mandare su WhatsApp (uguale per tutti)</p>
           <p className="truncate font-mono text-xs text-ink-soft">{SHARE_LINK}</p>
+          <p className="mt-1 text-[0.65rem] text-ink-soft/70">
+            Le risposte restano solo qui nello shop: non vengono inviate al CRM.
+          </p>
         </div>
         <button
           onClick={handleCopy}

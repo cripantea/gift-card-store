@@ -71,6 +71,8 @@ function hashIp(ip: string | null): string | null {
  * Registra la risposta e crea una gift card reale da 50 € (ordine a 0 €,
  * riscattabile in cassa come le altre). Un numero di telefono = una card:
  * se il numero ha già partecipato si restituisce la card esistente.
+ * Volutamente NON notifica il CRM: i dati del Give Away restano nello shop
+ * (tab Give Away di /cassa); al CRM vanno solo gli acquisti pagati.
  */
 export async function createGiveawayEntry(
   input: GiveawaySubmission,

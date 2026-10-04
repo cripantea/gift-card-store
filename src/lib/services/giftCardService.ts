@@ -12,7 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { generateFormattedCardCode, generateSecretToken } from "@/lib/utils/giftCard";
 import { generateOrderNumber } from "@/lib/utils/order";
 import { notifyFusionCRM } from "@/lib/fusionCrm";
-import { getProductName } from "@/lib/giftCardProducts";
+import { findGiftCardProduct, getProductName } from "@/lib/giftCardProducts";
 const GIFT_CARD_VALIDITY_MONTHS = 12;
 const ORDER_NUMBER_MAX_ATTEMPTS = 5;
 
@@ -125,7 +125,10 @@ export async function fulfillOrderAndCreateGiftCard(
     return { customer, order, payment, giftCard };
   });
 
-  notifyFusionCRM({
+  // Al CRM vanno solo i clienti che hanno davvero comprato: niente pagamenti
+  // di prova (gc-test). Le risposte del Give Away non passano mai di qui:
+  // restano solo nella tab Give Away di /cassa.
+  if (isRealPurchase(input.productSlug, input.amount)) notifyFusionCRM({
     buyer: {
       firstName: input.buyer.firstName,
       lastName:  input.buyer.lastName,
@@ -154,6 +157,10 @@ export async function fulfillOrderAndCreateGiftCard(
   });
 
   return result;
+}
+
+function isRealPurchase(productSlug: string | null | undefined, amountPaid: number): boolean {
+  return amountPaid > 0 && !findGiftCardProduct(productSlug)?.isTest;
 }
 
 async function createOrderWithUniqueNumber(
