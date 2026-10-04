@@ -23,6 +23,8 @@ interface FusionCRMPayload {
     /** "nessuno" se non è stato usato un codice: Meta non accetta parametri vuoti. */
     discountCode: string;
     product: string;
+    /** Nome e cognome dell'acquirente, per la notifica all'admin. */
+    customerName: string;
     currency: "EUR";
   };
   giftCard: {
@@ -95,6 +97,7 @@ export function notifyFusionCRM(input: NotifyFusionCRMInput): void {
       discountAmount: input.order.discountAmount,
       discountCode:   input.order.discountCode ?? NO_DISCOUNT_CODE,
       product:        input.order.product,
+      customerName:   `${input.buyer.firstName} ${input.buyer.lastName}`.trim(),
       currency:       "EUR",
     },
     giftCard: {
