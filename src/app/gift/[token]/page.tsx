@@ -27,6 +27,10 @@ export default async function GiftPage({ params }: GiftPageProps) {
 
   const isGiveaway = giftCard.order.productSlug === GIVEAWAY_PRODUCT_SLUG;
 
+  // Gift acquistate: l'unboxing riparte a ogni apertura del link.
+  // Giveaway: dopo la prima apertura si mostra direttamente la card.
+  const showUnboxing = !isGiveaway || !giftCard.isOpened;
+
   const card = (
     <VirtualGiftCard
       amount={giftCard.amount.toNumber()}
@@ -54,7 +58,7 @@ export default async function GiftPage({ params }: GiftPageProps) {
       </div>
 
       <div className="w-full max-w-md">
-        {giftCard.isOpened ? (
+        {!showUnboxing ? (
           // Card already opened: full GSAP hero entrance + idle + parallax
           <CardScene>{card}</CardScene>
         ) : (
