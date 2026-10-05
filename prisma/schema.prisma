@@ -71,6 +71,9 @@ model Order {
   discountCode     DiscountCode? @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
   // Copia del codice usato: resta anche se il codice viene eliminato dall'admin.
   discountCodeText String?
+  // Condizioni di vendita accettate al checkout (src/content/legal).
+  termsVersion     String?
+  termsAcceptedAt  DateTime?
   status           OrderStatus   @default(PENDING)
   payment          Payment?
   giftCard         GiftCard?
@@ -153,6 +156,8 @@ model PendingPaypalCheckout {
   discountCodeId     String?
   discountCodeText   String?
   scheduledAt        DateTime?
+  termsVersion       String?
+  termsAcceptedAt    DateTime?
   createdAt          DateTime  @default(now())
 }
 
@@ -200,6 +205,14 @@ model GiveawayEntry {
   favoriteServices Json?
   note             String?   @db.Text
   marketingConsent Boolean   @default(false)
+  // Prova del consenso marketing (art. 7.1 GDPR): quando e con quale testo.
+  marketingConsentAt   DateTime?
+  marketingConsentText String?   @db.Text
+  // Regolamento e informativa accettati (versione di src/content/legal).
+  termsVersion     String?
+  termsAcceptedAt  DateTime?
+  // Dati personali anonimizzati dopo 24 mesi (/api/cron/retention).
+  anonymizedAt     DateTime?
   // Parametro ?src= del link condiviso (es. "whatsapp"), per sapere da dove arriva.
   campaign         String?
   ipHash           String?

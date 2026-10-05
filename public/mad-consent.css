@@ -1,0 +1,62 @@
+/* Banner e preferenze cookie MAD for Hair (vedi mad-consent.js). */
+.madc-banner, .madc-dialog {
+  --madc-ink: #1d1b18;
+  --madc-soft: #57534e;
+  --madc-gold: #9e7f43;
+  --madc-line: #e7e0d2;
+  --madc-paper: #fffdf9;
+  font-family: "Montserrat", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  color: var(--madc-ink);
+  box-sizing: border-box;
+}
+.madc-banner *, .madc-dialog * { box-sizing: border-box; }
+.madc-banner {
+  position: fixed; z-index: 2147483000; left: 16px; right: 16px; bottom: 16px;
+  max-width: 760px; margin: 0 auto; padding: 20px 22px 18px;
+  background: var(--madc-paper); border: 1px solid var(--madc-line); border-top: 3px solid var(--madc-gold);
+  border-radius: 14px; box-shadow: 0 18px 50px rgba(29, 27, 24, .18);
+}
+.madc-title { margin: 0 32px 6px 0; font-size: 15px; font-weight: 700; letter-spacing: .02em; }
+.madc-text { margin: 0 0 14px; font-size: 13px; line-height: 1.55; color: var(--madc-soft); }
+.madc-text a { color: var(--madc-ink); text-decoration: underline; text-underline-offset: 2px; }
+.madc-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.madc-btn {
+  flex: 1 1 150px; min-height: 44px; padding: 10px 16px; cursor: pointer;
+  font-family: inherit; font-size: 14px; font-weight: 600; line-height: 1.2; letter-spacing: .02em;
+  color: var(--madc-ink); background: #fff; border: 1.5px solid var(--madc-ink); border-radius: 10px;
+  transition: background .15s, color .15s;
+}
+.madc-btn:hover, .madc-btn:focus-visible { background: var(--madc-ink); color: #fff; outline: none; }
+.madc-x {
+  position: absolute; top: 10px; right: 12px; width: 36px; height: 36px; cursor: pointer;
+  font-size: 24px; line-height: 1; color: var(--madc-soft); background: transparent; border: 0; border-radius: 8px;
+}
+.madc-x:hover, .madc-x:focus-visible { background: #f3eee4; color: var(--madc-ink); outline: none; }
+.madc-overlay {
+  position: fixed; inset: 0; z-index: 2147483001; display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(29, 27, 24, .45);
+}
+.madc-dialog {
+  position: relative; width: 100%; max-width: 560px; max-height: calc(100vh - 32px); overflow: auto;
+  padding: 24px 22px 20px; background: var(--madc-paper); border-radius: 14px; border-top: 3px solid var(--madc-gold);
+}
+.madc-cats { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.madc-cat { padding: 12px 14px; border: 1px solid var(--madc-line); border-radius: 10px; background: #fff; }
+.madc-cat p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--madc-soft); }
+.madc-cat-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; }
+.madc-cat-head label { cursor: pointer; }
+.madc-always { font-size: 12px; font-weight: 600; color: var(--madc-gold); }
+.madc-switch { position: relative; display: inline-block; width: 46px; height: 26px; flex: none; }
+.madc-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
+.madc-slider { position: absolute; inset: 0; border-radius: 26px; background: #cfc8bb; transition: background .15s; }
+.madc-slider::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .15s;
+}
+.madc-switch input:checked + .madc-slider { background: var(--madc-gold); }
+.madc-switch input:checked + .madc-slider::after { transform: translateX(20px); }
+.madc-switch input:focus-visible + .madc-slider { outline: 2px solid var(--madc-ink); outline-offset: 2px; }
+@media (max-width: 520px) {
+  .madc-banner { left: 8px; right: 8px; bottom: 8px; padding: 18px 16px 14px; }
+  .madc-btn { flex-basis: 100%; }
+}

@@ -155,7 +155,7 @@ export function GiveawayAdmin() {
       {visits && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <VisitStat label="Aperture totali del link" value={visits.total} highlight />
-          <VisitStat label="Persone diverse (telefoni)" value={visits.uniqueVisitors} />
+          <VisitStat label="Persone diverse (solo chi accetta le statistiche)" value={visits.uniqueVisitors} />
           <VisitStat label="Aperture oggi" value={visits.today} />
           <VisitStat label="Ultimi 7 giorni" value={visits.last7Days} />
           <p className="col-span-2 text-[0.68rem] text-ink-soft/70 sm:col-span-4">

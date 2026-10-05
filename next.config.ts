@@ -15,6 +15,15 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Vecchi indirizzi delle pagine legali (link rotti trovati nell'audit 2026-10-05).
+  async redirects() {
+    return [
+      { source: "/privacy-policy", destination: "/privacy", permanent: true },
+      { source: "/cookie", destination: "/cookie-policy", permanent: true },
+      { source: "/termini-e-condizioni", destination: "/condizioni-vendita", permanent: true },
+      { source: "/termini-condizioni", destination: "/condizioni-vendita", permanent: true },
+    ];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

@@ -41,6 +41,8 @@ export interface FulfillOrderAndCreateGiftCardInput {
   productSlug?: string | null;
   discount?: { id: string | null; code: string; amount: number } | null;
   scheduledAt?: Date | null;
+  /** Condizioni di vendita accettate al checkout (versione e momento). */
+  terms?: { version: string; acceptedAt: Date } | null;
 }
 
 export interface FulfillOrderAndCreateGiftCardResult {
@@ -89,6 +91,8 @@ export async function fulfillOrderAndCreateGiftCard(
       discountAmount,
       discountCodeId,
       discountCodeText: input.discount?.code ?? null,
+      termsVersion: input.terms?.version ?? null,
+      termsAcceptedAt: input.terms?.acceptedAt ?? null,
     });
 
     const payment = await tx.payment.create({
@@ -173,6 +177,8 @@ async function createOrderWithUniqueNumber(
     discountAmount: number;
     discountCodeId: string | null;
     discountCodeText: string | null;
+    termsVersion: string | null;
+    termsAcceptedAt: Date | null;
   },
 ): Promise<Order> {
   for (let attempt = 1; attempt <= ORDER_NUMBER_MAX_ATTEMPTS; attempt++) {
@@ -187,6 +193,8 @@ async function createOrderWithUniqueNumber(
           discountAmount: data.discountAmount,
           discountCodeId: data.discountCodeId,
           discountCodeText: data.discountCodeText,
+          termsVersion: data.termsVersion,
+          termsAcceptedAt: data.termsAcceptedAt,
           status: OrderStatus.PAID,
         },
       });

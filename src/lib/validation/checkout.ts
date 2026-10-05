@@ -21,6 +21,15 @@ export const checkoutRequestSchema = z.object({
 
 export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>;
 
+// Richiesta inviata alle API di pagamento: il checkout più l'accettazione
+// delle condizioni di vendita, con la versione accettata (src/content/legal).
+export const checkoutSubmitSchema = checkoutRequestSchema.extend({
+  termsAccepted: z.literal(true),
+  termsVersion: z.string().trim().min(1).max(20),
+});
+
+export type CheckoutSubmit = z.infer<typeof checkoutSubmitSchema>;
+
 export const stripeCheckoutMetadataSchema = z.object({
   buyerFirstName: z.string().min(1),
   buyerLastName: z.string().min(1),
@@ -37,6 +46,9 @@ export const stripeCheckoutMetadataSchema = z.object({
   discountAmount: z.string().optional(),
   discountCodeId: z.string().optional(),
   discountCode: z.string().optional(),
+  // Assenti nelle sessioni create prima del 2026-10-05.
+  termsVersion: z.string().optional(),
+  termsAcceptedAt: z.string().optional(),
 });
 
 export const discountValidateRequestSchema = z.object({

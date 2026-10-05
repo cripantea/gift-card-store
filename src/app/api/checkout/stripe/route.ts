@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
-import { checkoutRequestSchema } from "@/lib/validation/checkout";
+import { checkoutSubmitSchema } from "@/lib/validation/checkout";
 import { quoteCheckout } from "@/lib/services/discountService";
 
 export const runtime = "nodejs";
@@ -19,10 +19,13 @@ export async function POST(
   request: Request,
 ): Promise<NextResponse<StripeCheckoutResponse | ApiErrorResponse>> {
   const body: unknown = await request.json().catch(() => null);
-  const parsed = checkoutRequestSchema.safeParse(body);
+  const parsed = checkoutSubmitSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Payload di checkout non valido." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Dati non validi o condizioni di vendita non accettate." },
+      { status: 400 },
+    );
   }
 
   const { buyer, recipient, scheduledAt } = parsed.data;
@@ -49,6 +52,8 @@ export async function POST(
     discountAmount: quote.discountAmount.toString(),
     discountCodeId: quote.discount?.id ?? "",
     discountCode: quote.discount?.code ?? "",
+    termsVersion: parsed.data.termsVersion,
+    termsAcceptedAt: new Date().toISOString(),
   };
 
   try {

@@ -51,7 +51,8 @@ export async function loadGiveawayEntries(): Promise<AdminGiveawayResult> {
       orderBy: { createdAt: "desc" },
     }),
     prisma.giveawayVisit.count(),
-    prisma.giveawayVisit.groupBy({ by: ["visitorId"] }),
+    // Solo chi ha accettato i cookie statistici ha un id: gli altri sono "anonimo".
+    prisma.giveawayVisit.groupBy({ by: ["visitorId"], where: { visitorId: { not: "anonimo" } } }),
     prisma.giveawayVisit.count({ where: { createdAt: { gte: startOfToday } } }),
     prisma.giveawayVisit.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
   ]);

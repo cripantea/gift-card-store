@@ -5,7 +5,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Check, ChevronDown, Gift, X } from "lucide-react";
 import { recoverGiveaway, submitGiveaway } from "@/app/give-away/actions";
-import { GIVEAWAY_KNOWN_SINCE, GIVEAWAY_SOURCES, SERVIZI_GRUPPI } from "@/lib/giveawayOptions";
+import Link from "next/link";
+import {
+  GIVEAWAY_KNOWN_SINCE,
+  GIVEAWAY_MARKETING_CONSENT_TEXT,
+  GIVEAWAY_MIN_AGE,
+  GIVEAWAY_SOURCES,
+  SERVIZI_GRUPPI,
+} from "@/lib/giveawayOptions";
+import { COMPANY } from "@/lib/company";
 
 const inputClass =
   "w-full rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30";
@@ -152,7 +160,10 @@ const MESI = [
   "Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre",
 ];
 const GIORNI = Array.from({ length: 31 }, (_, i) => i + 1);
-const ANNI   = Array.from({ length: 90  }, (_, i) => 2012 - i);
+// Solo maggiorenni: l'ultimo anno è quello di chi compie 18 anni quest'anno
+// (il server verifica la data esatta).
+const ANNO_MAX = new Date().getFullYear() - GIVEAWAY_MIN_AGE;
+const ANNI   = Array.from({ length: 83  }, (_, i) => ANNO_MAX - i);
 
 function Sel({
   value, onChange, placeholder, children,
@@ -408,8 +419,7 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
               <input id="marketing" type="checkbox" checked={marketing} onChange={e => setMarketing(e.target.checked)}
                 className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded" style={{ accentColor: "var(--color-gold)" }} />
               <label htmlFor="marketing" className="cursor-pointer text-xs leading-relaxed text-ink-soft">
-                Acconsento a ricevere offerte riservate, novità e promozioni da MAD Vigevano via WhatsApp.
-                Posso revocare il consenso in qualsiasi momento.{" "}
+                {GIVEAWAY_MARKETING_CONSENT_TEXT}{" "}
                 <span className="text-[0.65rem] text-neutral-400">(facoltativo)</span>
               </label>
             </div>
@@ -418,9 +428,15 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
               <input id="privacy" type="checkbox" required checked={privacy} onChange={e => setPrivacy(e.target.checked)}
                 className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded" style={{ accentColor: "var(--color-gold)" }} />
               <label htmlFor="privacy" className="cursor-pointer text-xs leading-relaxed text-ink-soft">
-                Ho letto e accetto l&apos;<span className="font-medium text-ink">informativa sul trattamento dei dati personali</span>.{" "}
-                I miei dati saranno trattati da MAD Vigevano (Via Cairoli 6, Vigevano PV) per gestire questa Gift Card
-                e contattarmi su WhatsApp.{" "}
+                Dichiaro di essere maggiorenne e accetto il{" "}
+                <Link href="/regolamento-give-away" target="_blank" className="font-medium text-ink underline underline-offset-2">
+                  regolamento del Give Away
+                </Link>
+                . Ho letto l&apos;
+                <Link href="/privacy" target="_blank" className="font-medium text-ink underline underline-offset-2">
+                  informativa privacy
+                </Link>
+                : i miei dati servono a emettere e ritrovare la gift card.{" "}
                 <span className="text-[0.65rem] text-neutral-400">(obbligatorio)</span>
               </label>
             </div>
@@ -448,8 +464,10 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
           </button>
 
           <p className="text-center text-[0.62rem] leading-relaxed text-neutral-400">
-            Titolare del trattamento: MAD Vigevano · Via Cairoli 6, 27029 Vigevano (PV) · Tel.&nbsp;0381&nbsp;644268.
-            Hai diritto di accedere, rettificare o cancellare i tuoi dati contattandoci al numero sopra.
+            Titolare del trattamento: {COMPANY.ragioneSociale} · {COMPANY.sedeLegale} · P.IVA {COMPANY.piva} ·
+            Tel.&nbsp;{COMPANY.telefono} · {COMPANY.email}. Dati conservati 24 mesi, poi anonimizzati. Puoi chiedere
+            accesso, rettifica, cancellazione, limitazione, portabilità e opporti al trattamento scrivendo
+            all&apos;email indicata, e proporre reclamo al Garante privacy.
           </p>
         </form>
       )}

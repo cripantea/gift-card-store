@@ -96,6 +96,9 @@ export async function POST(request: Request): Promise<NextResponse<WebhookAck | 
             }
           : null,
         scheduledAt: pendingCheckout.scheduledAt,
+        terms: pendingCheckout.termsVersion
+          ? { version: pendingCheckout.termsVersion, acceptedAt: pendingCheckout.termsAcceptedAt ?? new Date() }
+          : null,
       });
 
       await prisma.pendingPaypalCheckout.delete({ where: { id: orderId } });

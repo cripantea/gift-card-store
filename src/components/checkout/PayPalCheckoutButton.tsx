@@ -1,11 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import {
   PayPalButtons,
   PayPalScriptProvider,
   usePayPalScriptReducer,
 } from "@paypal/react-paypal-js";
-import type { CheckoutRequest } from "@/lib/validation/checkout";
+import type { CheckoutSubmit } from "@/lib/validation/checkout";
 
 interface PaypalOrderResponse {
   orderId: string;
@@ -16,7 +17,7 @@ interface ApiErrorResponse {
 }
 
 interface PayPalCheckoutButtonProps {
-  payload: CheckoutRequest | null;
+  payload: CheckoutSubmit | null;
   disabled: boolean;
   onSuccess: () => void;
   onError: (message: string) => void;
@@ -33,11 +34,28 @@ export function PayPalCheckoutButton({
   onSuccess,
   onError,
 }: PayPalCheckoutButtonProps) {
+  // L'SDK di PayPal (script, cookie e storage di terza parte) si carica solo
+  // quando il cliente sceglie di pagare con PayPal, non all'apertura dello shop.
+  const [isRequested, setIsRequested] = useState(false);
+
   if (!PAYPAL_CLIENT_ID) {
     return (
       <p className={UNAVAILABLE_MESSAGE_CLASSNAME}>
         Il pagamento PayPal non è al momento disponibile.
       </p>
+    );
+  }
+
+  if (!isRequested) {
+    return (
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setIsRequested(true)}
+        className="flex w-full items-center justify-center gap-2 rounded-full bg-[#ffc439] px-6 py-3.5 text-base font-semibold text-[#003087] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        Paga con <span className="italic">PayPal</span>
+      </button>
     );
   }
 

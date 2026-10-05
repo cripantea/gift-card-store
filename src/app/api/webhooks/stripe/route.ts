@@ -71,6 +71,12 @@ export async function POST(request: Request): Promise<NextResponse<WebhookAck | 
             }
           : null,
         scheduledAt: metadata.scheduledAt ? new Date(metadata.scheduledAt) : null,
+        terms: metadata.termsVersion
+          ? {
+              version: metadata.termsVersion,
+              acceptedAt: metadata.termsAcceptedAt ? new Date(metadata.termsAcceptedAt) : new Date(),
+            }
+          : null,
       });
     } catch (error) {
       console.error("Erogazione della Gift Card (Stripe) fallita", error);

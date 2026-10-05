@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { CheckoutPaymentIntent } from "@paypal/paypal-server-sdk";
 import { paypalOrdersController } from "@/lib/paypal";
 import { prisma } from "@/lib/prisma";
-import { checkoutRequestSchema } from "@/lib/validation/checkout";
+import { checkoutSubmitSchema } from "@/lib/validation/checkout";
 import { quoteCheckout } from "@/lib/services/discountService";
 
 export const runtime = "nodejs";
@@ -19,10 +19,13 @@ export async function POST(
   request: Request,
 ): Promise<NextResponse<PaypalCheckoutResponse | ApiErrorResponse>> {
   const body: unknown = await request.json().catch(() => null);
-  const parsed = checkoutRequestSchema.safeParse(body);
+  const parsed = checkoutSubmitSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Payload di checkout non valido." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Dati non validi o condizioni di vendita non accettate." },
+      { status: 400 },
+    );
   }
 
   const { buyer, recipient, scheduledAt } = parsed.data;
@@ -71,6 +74,8 @@ export async function POST(
         discountCodeId: quote.discount?.id ?? null,
         discountCodeText: quote.discount?.code ?? null,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+        termsVersion: parsed.data.termsVersion,
+        termsAcceptedAt: new Date(),
       },
     });
 

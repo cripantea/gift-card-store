@@ -14,27 +14,41 @@ interface CheckoutSuccessPageProps {
   searchParams: Promise<CheckoutSuccessSearchParams>;
 }
 
-async function resolveRecipientPhone(
-  params: CheckoutSuccessSearchParams,
-): Promise<string | null> {
-  if (params.recipientPhone) {
-    return params.recipientPhone;
-  }
+interface PurchaseSummary {
+  recipientPhone: string | null;
+  /** Valore della gift card e importo pagato (solo per i pagamenti Stripe). */
+  faceValue: number | null;
+  amountPaid: number | null;
+}
 
-  if (!params.session_id) {
-    return null;
+function formatEuro(value: number): string {
+  return `${value.toFixed(2).replace(".", ",")} €`;
+}
+
+async function resolvePurchaseSummary(
+  params: CheckoutSuccessSearchParams,
+): Promise<PurchaseSummary> {
+  const empty: PurchaseSummary = { recipientPhone: params.recipientPhone ?? null, faceValue: null, amountPaid: null };
+  if (params.recipientPhone || !params.session_id) {
+    return empty;
   }
 
   try {
     const session = await stripe.checkout.sessions.retrieve(params.session_id);
     const metadata = stripeCheckoutMetadataSchema.safeParse(session.metadata ?? {});
-    return metadata.success ? metadata.data.recipientPhone : null;
+    if (!metadata.success) return empty;
+    const amountPaid = Number(metadata.data.amount);
+    return {
+      recipientPhone: metadata.data.recipientPhone,
+      faceValue: metadata.data.faceValue ? Number(metadata.data.faceValue) : amountPaid,
+      amountPaid,
+    };
   } catch (error) {
     console.error(
       "Impossibile recuperare la sessione Stripe per la pagina di conferma",
       error,
     );
-    return null;
+    return empty;
   }
 }
 
@@ -42,7 +56,7 @@ export default async function CheckoutSuccessPage({
   searchParams,
 }: CheckoutSuccessPageProps) {
   const params = await searchParams;
-  const recipientPhone = await resolveRecipientPhone(params);
+  const { recipientPhone, faceValue, amountPaid } = await resolvePurchaseSummary(params);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-paper px-6 py-24 text-center">
@@ -71,6 +85,22 @@ export default async function CheckoutSuccessPage({
           scoprire il regalo!
         </p>
       )}
+
+      {faceValue != null && amountPaid != null && (
+        <p className="mt-4 text-sm text-ink-soft">
+          Gift card da <strong className="text-ink">{formatEuro(faceValue)}</strong> · importo pagato{" "}
+          <strong className="text-ink">{formatEuro(amountPaid)}</strong> · valida 12 mesi
+        </p>
+      )}
+
+      <p className="mt-6 max-w-md text-xs leading-relaxed text-ink-soft/80">
+        Puoi recedere entro 14 giorni dall&apos;acquisto, con rimborso completo, se la gift card non
+        è ancora stata utilizzata. Tutti i dettagli nelle{" "}
+        <Link href="/condizioni-vendita" className="underline underline-offset-2 hover:text-gold">
+          Condizioni generali di vendita
+        </Link>
+        .
+      </p>
 
       <Link
         href="/"

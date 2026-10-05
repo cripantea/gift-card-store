@@ -285,32 +285,6 @@ export default async function Home({ searchParams }: HomeProps) {
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="border-t border-gold/20">
-          <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-3 px-6 py-5 sm:flex-row">
-            <p className="text-[0.65rem] text-ink-soft/60">
-              P.IVA: 02969660188
-            </p>
-            <div className="flex items-center gap-6 text-[0.65rem] text-ink-soft/70">
-              <a
-                href="https://madvigevano.it/privacy-policy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium hover:text-gold transition-colors"
-              >
-                Privacy Policy
-              </a>
-              <a
-                href="https://madvigevano.it/termini-e-condizioni"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium hover:text-gold transition-colors"
-              >
-                Termini e condizioni
-              </a>
-            </div>
-          </div>
-        </div>
       </footer>
     </div>
   );

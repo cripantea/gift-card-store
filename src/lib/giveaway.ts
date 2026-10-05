@@ -3,7 +3,14 @@ import { z } from "zod";
 import { OrderStatus, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { generateFormattedCardCode, generateSecretToken } from "@/lib/utils/giftCard";
-import { GIVEAWAY_KNOWN_SINCE, GIVEAWAY_SERVICES, GIVEAWAY_SOURCES } from "@/lib/giveawayOptions";
+import {
+  GIVEAWAY_KNOWN_SINCE,
+  GIVEAWAY_MARKETING_CONSENT_TEXT,
+  GIVEAWAY_MIN_AGE,
+  GIVEAWAY_SERVICES,
+  GIVEAWAY_SOURCES,
+} from "@/lib/giveawayOptions";
+import { LEGAL_VERSION } from "@/lib/company";
 
 export const GIVEAWAY_PRODUCT_SLUG = "giveaway";
 export const GIVEAWAY_AMOUNT = 50;
@@ -70,6 +77,15 @@ export async function recordGiveawayVisit(rawVisitorId: string): Promise<void> {
   await prisma.giveawayVisit.create({ data: { visitorId } });
 }
 
+function isAdult(birthDate: string): boolean {
+  const [y, m, d] = birthDate.split("-").map(Number);
+  if (!y || !m || !d) return false;
+  const today = new Date();
+  let age = today.getFullYear() - y;
+  if (today.getMonth() + 1 < m || (today.getMonth() + 1 === m && today.getDate() < d)) age--;
+  return age >= GIVEAWAY_MIN_AGE && age < 120;
+}
+
 export const giveawaySubmissionSchema = z
   .object({
     firstName: z.string().trim().min(1).max(100),
@@ -88,6 +104,10 @@ export const giveawaySubmissionSchema = z
     marketingConsent: z.boolean(),
     privacyConsent: z.literal(true),
     campaign: z.string().max(100).optional(),
+  })
+  .refine((data) => isAdult(data.birthDate), {
+    path: ["birthDate"],
+    message: `Il Give Away è riservato ai maggiorenni (${GIVEAWAY_MIN_AGE} anni compiuti).`,
   })
   .refine((data) => data.source !== "Altro" || !!data.sourceOther, {
     path: ["sourceOther"],
@@ -190,6 +210,10 @@ export async function createGiveawayEntry(
           favoriteServices: input.favoriteServices,
           note: input.note || null,
           marketingConsent: input.marketingConsent,
+          marketingConsentAt: input.marketingConsent ? new Date() : null,
+          marketingConsentText: input.marketingConsent ? GIVEAWAY_MARKETING_CONSENT_TEXT : null,
+          termsVersion: LEGAL_VERSION,
+          termsAcceptedAt: new Date(),
           campaign: sanitizeCampaign(input.campaign),
           ipHash,
           email,

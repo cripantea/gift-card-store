@@ -1,5 +1,12 @@
 // Opzioni del form Give Away: file senza dipendenze server, importabile dal client.
 
+/** Testo esatto del consenso marketing: mostrato nel form e salvato con la risposta. */
+export const GIVEAWAY_MARKETING_CONSENT_TEXT =
+  "Acconsento a ricevere offerte riservate, novità e promozioni da MAD for Hair (MAD S.r.l.s.) via WhatsApp. Posso revocare il consenso in qualsiasi momento rispondendo STOP.";
+
+/** Età minima per partecipare (regolamento del Give Away). */
+export const GIVEAWAY_MIN_AGE = 18;
+
 export const GIVEAWAY_THANK_YOU = "Grazie della tua fiducia — questo è il nostro regalo per te";
 
 export const GIVEAWAY_SOURCES = [

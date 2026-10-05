@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, Loader2, ShieldCheck, Tag, X } from "lucide-react";
 import { AmountSelector, CUSTOM_AMOUNT_MAX, CUSTOM_AMOUNT_MIN } from "./AmountSelector";
 import { GiftDetailsForm, type GiftMode, type DeliveryTarget, type BuyerFields, type RecipientFields } from "./GiftDetailsForm";
 import { PayPalCheckoutButton } from "./PayPalCheckoutButton";
-import { checkoutRequestSchema, type CheckoutRequest } from "@/lib/validation/checkout";
+import { checkoutRequestSchema, type CheckoutRequest, type CheckoutSubmit } from "@/lib/validation/checkout";
+import { COMPANY, LEGAL_VERSION } from "@/lib/company";
 import {
   CUSTOM_PRODUCT_SLUG,
   DEFAULT_PRODUCT_SLUG,
@@ -96,7 +98,6 @@ export function GiftCardCheckout({
   const [activePayment, setActivePayment] = useState<"stripe" | "paypal" | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const [scheduledAt, setScheduledAt] = useState("");
@@ -196,7 +197,9 @@ export function GiftCardCheckout({
 
   const payload: CheckoutRequest | null =
     validation.success && faceValue != null ? validation.data : null;
-  const canPurchase = !!payload && privacyAccepted && termsAccepted;
+  const canPurchase = !!payload && termsAccepted;
+  const submitPayload: CheckoutSubmit | null =
+    payload && termsAccepted ? { ...payload, termsAccepted: true, termsVersion: LEGAL_VERSION } : null;
 
   function handleSelectDenomination(slug: string) {
     setSelectedSlug(slug);
@@ -227,7 +230,7 @@ export function GiftCardCheckout({
       setFormError(
         !payload
           ? "Controlla i dati inseriti: alcuni campi obbligatori non sono validi."
-          : "Devi accettare la Privacy Policy e i Termini e Condizioni per procedere.",
+          : "Per procedere devi accettare le Condizioni generali di vendita.",
       );
       return;
     }
@@ -239,7 +242,7 @@ export function GiftCardCheckout({
       const response = await fetch("/api/checkout/stripe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(submitPayload),
       });
 
       const json: StripeCheckoutResponse | ApiErrorResponse = await response.json();
@@ -285,6 +288,7 @@ export function GiftCardCheckout({
               setFormError(null);
             }}
             onCustomAmountBlur={handleCustomAmountBlur}
+            showTest={initialProduct?.isTest === true}
           />
         </motion.div>
 
@@ -424,7 +428,7 @@ export function GiftCardCheckout({
                   </p>
                 )}
                 <p className="mt-2 text-[0.7rem] text-ink-soft/60">
-                  IVA inclusa · Valida 12 mesi dall&apos;acquisto · Nessuna spesa di spedizione
+                  Prezzo finale, nessun costo aggiuntivo · Valida 12 mesi dall&apos;acquisto · Recesso entro 14 giorni se non utilizzata
                 </p>
                 {scheduledAt && (
                   <p className="mt-1 text-[0.7rem] font-medium text-gold/80">
@@ -442,51 +446,32 @@ export function GiftCardCheckout({
             )}
           </AnimatePresence>
 
-          {/* Consensi normativi */}
+          {/* Informativa privacy e condizioni di vendita */}
           <div className="flex flex-col gap-3 rounded-2xl border border-line bg-paper px-5 py-4">
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={privacyAccepted}
-                onChange={(e) => setPrivacyAccepted(e.target.checked)}
-                className="mt-0.5 h-4 w-4 shrink-0 accent-gold cursor-pointer"
-              />
-              <span className="text-xs leading-relaxed text-ink-soft">
-                Ho letto e accetto la{" "}
-                <a
-                  href="https://madvigevano.it/privacy-policy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-2 hover:text-gold transition-colors"
-                >
-                  Privacy Policy
-                </a>{" "}
-                e autorizzo il trattamento dei miei dati personali ai sensi del
-                Reg. UE 2016/679 (GDPR). *
-              </span>
-            </label>
+            <p className="text-xs leading-relaxed text-ink-soft">
+              I dati inseriti servono a concludere l&apos;acquisto e a consegnare la gift card su
+              WhatsApp, come descritto nell&apos;
+              <Link href="/privacy" target="_blank" className="underline underline-offset-2 transition-colors hover:text-gold">
+                informativa privacy
+              </Link>
+              . Se la regali, assicurati che il destinatario sia d&apos;accordo a ricevere il
+              messaggio al numero indicato.
+            </p>
 
-            <label className="flex items-start gap-3 cursor-pointer">
+            <label className="flex cursor-pointer items-start gap-3 border-t border-line pt-3">
               <input
                 type="checkbox"
                 checked={termsAccepted}
                 onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="mt-0.5 h-4 w-4 shrink-0 accent-gold cursor-pointer"
+                className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-gold"
               />
               <span className="text-xs leading-relaxed text-ink-soft">
-                Ho letto e accetto i{" "}
-                <a
-                  href="https://madvigevano.it/termini-e-condizioni"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-2 hover:text-gold transition-colors"
-                >
-                  Termini e Condizioni
-                </a>{" "}
-                di vendita. Confermo di aver preso atto che, ai sensi
-                dell&apos;art. 59 co. 1 lett. o) D.Lgs. 206/2005, il diritto di
-                recesso non si applica ai contenuti digitali la cui esecuzione
-                inizia immediatamente dopo l&apos;acquisto. *
+                Ho letto e accetto le{" "}
+                <Link href="/condizioni-vendita" target="_blank" className="underline underline-offset-2 transition-colors hover:text-gold">
+                  Condizioni generali di vendita
+                </Link>
+                . So che posso recedere entro 14 giorni dall&apos;acquisto, con rimborso
+                completo, se la gift card non è ancora stata utilizzata. *
               </span>
             </label>
           </div>
@@ -583,7 +568,7 @@ export function GiftCardCheckout({
 
             {/* PayPal */}
             <PayPalCheckoutButton
-              payload={payload}
+              payload={submitPayload}
               disabled={!canPurchase}
               onSuccess={handlePayPalSuccess}
               onError={setFormError}
@@ -592,7 +577,7 @@ export function GiftCardCheckout({
 
           <div className="flex items-center justify-center gap-1.5 text-xs text-ink-soft/60">
             <ShieldCheck className="h-3.5 w-3.5 text-gold/60" />
-            Pagamento sicuro e crittografato · Venditore: MAD Vigevano, Via Cairoli 6, Vigevano PV
+            Pagamento sicuro e crittografato · Venditore: {COMPANY.ragioneSociale}, {COMPANY.sedeLegale}
           </div>
         </motion.div>
       </motion.div>

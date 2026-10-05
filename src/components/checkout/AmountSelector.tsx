@@ -22,6 +22,8 @@ interface AmountSelectorProps {
   onSelectCustom: () => void;
   onCustomAmountChange: (value: string) => void;
   onCustomAmountBlur?: () => void;
+  /** Il taglio di prova compare solo aprendo lo shop con ?prodotto=gc-test. */
+  showTest?: boolean;
 }
 
 export function AmountSelector({
@@ -32,7 +34,9 @@ export function AmountSelector({
   onSelectCustom,
   onCustomAmountChange,
   onCustomAmountBlur,
+  showTest = false,
 }: AmountSelectorProps) {
+  const products = FIXED_PRODUCTS.filter((p) => showTest || !p.isTest);
   return (
     <fieldset>
       <legend className="font-display text-2xl font-semibold text-ink">
@@ -43,7 +47,7 @@ export function AmountSelector({
       </p>
 
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {FIXED_PRODUCTS.map(({ slug, value }) => {
+        {products.map(({ slug, value }) => {
           const isSelected = !isCustom && selected === slug;
           return (
             <button
