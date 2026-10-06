@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Check, ChevronDown, Gift, X } from "lucide-react";
@@ -14,6 +14,7 @@ import {
   SERVIZI_GRUPPI,
 } from "@/lib/giveawayOptions";
 import { COMPANY } from "@/lib/company";
+import { GiveawayCountdown, GiveawayCountdownInline } from "@/components/giveaway/GiveawayCountdown";
 
 const inputClass =
   "w-full rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-neutral-400 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold/30";
@@ -260,8 +261,11 @@ function AlreadyParticipated() {
   );
 }
 
-export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; isOpen: boolean }) {
+export function GiveawayForm({ campaign, isOpen: openAtRender }: { campaign: string | null; isOpen: boolean }) {
   const router = useRouter();
+  // Chiuso allo scadere del timer anche se la pagina era già aperta.
+  const [expired, setExpired] = useState(false);
+  const isOpen = openAtRender && !expired;
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -277,6 +281,8 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
   const [nota, setNota]               = useState("");
   const [privacy, setPrivacy]         = useState(false);
   const [marketing, setMarketing]     = useState(false);
+
+  const handleExpired = useCallback(() => setExpired(true), []);
 
   const isValid =
     firstName.trim() !== "" &&
@@ -346,6 +352,7 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
           </p>
           <span className="text-xs font-semibold text-gold transition-transform group-hover:translate-y-0.5">Ritirala ↓</span>
         </a>
+        {isOpen && <GiveawayCountdown onEnd={handleExpired} />}
       </div>
 
       {!isOpen ? (
@@ -447,6 +454,8 @@ export function GiveawayForm({ campaign, isOpen }: { campaign: string | null; is
               {error}
             </p>
           )}
+
+          <GiveawayCountdownInline />
 
           <button
             type="submit"

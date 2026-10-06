@@ -4,6 +4,7 @@ import { OrderStatus, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { generateFormattedCardCode, generateSecretToken } from "@/lib/utils/giftCard";
 import {
+  GIVEAWAY_ENDS_AT,
   GIVEAWAY_KNOWN_SINCE,
   GIVEAWAY_MARKETING_CONSENT_TEXT,
   GIVEAWAY_MIN_AGE,
@@ -20,12 +21,9 @@ const MAX_ENTRIES_PER_IP_PER_DAY = 5;
 /** Dedica stampata sulla card (la frase di ringraziamento compare già all'apertura). */
 const GIVEAWAY_CARD_MESSAGE = "Un piccolo grazie per ogni volta che ci hai scelto. Ti aspettiamo in salone!";
 
-/** Fine del Give Away (GIVEAWAY_ENDS_AT, ISO): senza variabile resta aperto. */
+/** Il Give Away chiude a mezzanotte (ora italiana) tra il 12 e il 13 ottobre 2026. */
 export function isGiveawayOpen(now: Date = new Date()): boolean {
-  const endsAt = process.env.GIVEAWAY_ENDS_AT;
-  if (!endsAt) return true;
-  const end = new Date(endsAt);
-  return Number.isNaN(end.getTime()) || now <= end;
+  return now.getTime() < new Date(GIVEAWAY_ENDS_AT).getTime();
 }
 
 /** "+39 333 123 4567", "3331234567", "0039…" → "+393331234567"; null se non plausibile. */

@@ -7,6 +7,12 @@ export const GIVEAWAY_MARKETING_CONSENT_TEXT =
 /** Età minima per partecipare (regolamento del Give Away). */
 export const GIVEAWAY_MIN_AGE = 18;
 
+/**
+ * Chiusura del Give Away: mezzanotte tra lunedì 12 e martedì 13 ottobre 2026,
+ * ora italiana (CEST, UTC+2) → 00:00 del 13/10 = 22:00 UTC del 12/10.
+ */
+export const GIVEAWAY_ENDS_AT = "2026-10-12T22:00:00.000Z";
+
 export const GIVEAWAY_THANK_YOU = "Grazie della tua fiducia — questo è il nostro regalo per te";
 
 export const GIVEAWAY_SOURCES = [
